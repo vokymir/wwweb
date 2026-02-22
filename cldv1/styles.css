@@ -1,0 +1,1384 @@
+/*
+  ═══════════════════════════════════════════════════════════════════════
+  styles.css
+  ═══════════════════════════════════════════════════════════════════════
+
+  Architecture:
+  1.  Custom properties (design tokens)
+  2.  CSS reset & base
+  3.  Typography
+  4.  Utility classes (accessibility-only)
+  5.  Layout primitives
+  6.  Skip link
+  7.  Site header & sticky behavior
+  8.  Logo
+  9.  Navigation
+  10. Dropdown menus (details/summary)
+  11. Header actions
+  12. Search toggle & panel
+  13. Buttons
+  14. Mobile navigation
+  15. Demo content (page body)
+  16. Footer
+  17. Focus styles
+  18. Motion preferences
+
+  ═══════════════════════════════════════════════════════════════════════
+*/
+
+
+/* ─────────────────────────────────────────────────────────────────────
+   1. CUSTOM PROPERTIES (Design Tokens)
+   ─────────────────────────────────────────────────────────────────────
+   Why CSS variables over Sass/Less variables?
+   - Runtime: CSS vars can be changed via JS or overridden in media queries
+   - Cascade: they inherit and can be scoped to any element
+   - No build step required
+
+   Why on :root?
+   :root is the <html> element but with higher specificity than html {}.
+   Defining tokens here makes them globally available.
+
+   Naming convention: --category-variant-property
+   This is not the only valid approach, but it's readable and maintainable.
+
+   Design token philosophy:
+   - Primitive tokens: raw values (--color-blue-600: #2563eb)
+   - Semantic tokens: purpose-driven (--color-action: var(--color-blue-600))
+   Using semantic tokens in components means you change ONE variable to
+   retheme the entire product.
+*/
+:root {
+
+  /* ── Color primitives ───────────────────────────────────────────── */
+  --color-slate-50:   #f8fafc;
+  --color-slate-100:  #f1f5f9;
+  --color-slate-200:  #e2e8f0;
+  --color-slate-400:  #94a3b8;
+  --color-slate-600:  #475569;
+  --color-slate-700:  #334155;
+  --color-slate-800:  #1e293b;
+  --color-slate-900:  #0f172a;
+  --color-slate-950:  #070d1a;
+
+  --color-amber-400:  #fbbf24;
+  --color-amber-500:  #f59e0b;
+  --color-amber-600:  #d97706;
+
+  --color-white:      #ffffff;
+
+  /* ── Semantic color tokens ──────────────────────────────────────── */
+  --color-bg:           var(--color-white);
+  --color-bg-subtle:    var(--color-slate-50);
+  --color-bg-muted:     var(--color-slate-100);
+
+  --color-text-primary:   var(--color-slate-900);
+  --color-text-secondary: var(--color-slate-600);
+  --color-text-inverse:   var(--color-white);
+
+  --color-border:         var(--color-slate-200);
+  --color-border-strong:  var(--color-slate-400);
+
+  --color-action:         var(--color-slate-900);
+  --color-action-hover:   var(--color-slate-700);
+  --color-action-text:    var(--color-white);
+
+  --color-accent:         var(--color-amber-500);
+  --color-accent-hover:   var(--color-amber-600);
+  --color-accent-text:    var(--color-slate-900);
+
+  /* ── Header-specific tokens ─────────────────────────────────────── */
+  /*
+    Why separate header tokens?
+    If you want a dark/transparent header on the home page only,
+    you override just these variables on .site-header--transparent
+    without touching any other component's styles.
+  */
+  --header-bg:          var(--color-white);
+  --header-text:        var(--color-text-primary);
+  --header-height:      4.5rem;        /* 72px at 16px base */
+  --header-border:      var(--color-border);
+
+  /*
+    Backdrop blur for header — creates "frosted glass" effect.
+    We define it as a variable so we can easily disable it
+    (some users find it distracting, or it performs poorly on low-end devices).
+  */
+  --header-blur:        blur(12px);
+  --header-bg-alpha:    rgba(255, 255, 255, 0.92);
+
+  /* ── Typography ─────────────────────────────────────────────────── */
+  --font-display:  'Syne', system-ui, sans-serif;
+  --font-body:     'DM Sans', system-ui, sans-serif;
+  --font-mono:     'Courier New', Courier, monospace;
+
+  /*
+    Type scale — using a modular scale (ratio ~1.25, "Major Third")
+    Each step multiplies by ~1.25. This creates visual rhythm and harmony.
+    Generated from: https://typescale.com/
+  */
+  --text-xs:    0.75rem;   /* 12px */
+  --text-sm:    0.875rem;  /* 14px */
+  --text-base:  1rem;      /* 16px */
+  --text-md:    1.125rem;  /* 18px */
+  --text-lg:    1.25rem;   /* 20px */
+  --text-xl:    1.5rem;    /* 24px */
+  --text-2xl:   1.875rem;  /* 30px */
+  --text-3xl:   2.25rem;   /* 36px */
+  --text-4xl:   3rem;      /* 48px */
+  --text-5xl:   3.75rem;   /* 60px */
+
+  --weight-light:   300;
+  --weight-regular: 400;
+  --weight-medium:  500;
+  --weight-semibold: 600;
+  --weight-bold:    700;
+  --weight-extrabold: 800;
+
+  --leading-tight:    1.2;
+  --leading-snug:     1.35;
+  --leading-normal:   1.6;
+  --leading-relaxed:  1.75;
+
+  --tracking-tight:  -0.02em;
+  --tracking-normal:  0;
+  --tracking-wide:    0.05em;
+  --tracking-widest:  0.12em;
+
+  /* ── Spacing ────────────────────────────────────────────────────── */
+  /*
+    4px base grid. Everything is a multiple of 4px.
+    This creates unconscious visual harmony — elements feel aligned
+    even when not explicitly aligned.
+  */
+  --space-1:   0.25rem;  /* 4px  */
+  --space-2:   0.5rem;   /* 8px  */
+  --space-3:   0.75rem;  /* 12px */
+  --space-4:   1rem;     /* 16px */
+  --space-5:   1.25rem;  /* 20px */
+  --space-6:   1.5rem;   /* 24px */
+  --space-8:   2rem;     /* 32px */
+  --space-10:  2.5rem;   /* 40px */
+  --space-12:  3rem;     /* 48px */
+  --space-16:  4rem;     /* 64px */
+  --space-20:  5rem;     /* 80px */
+  --space-24:  6rem;     /* 96px */
+
+  /* ── Layout ──────────────────────────────────────────────────────── */
+  --max-width-content: 75rem;    /* 1200px — comfortable reading/content max */
+  --max-width-narrow:  42rem;    /* 672px  — ideal for long-form text */
+  --gutter:            var(--space-6); /* horizontal padding on containers */
+
+  /* ── Border radius ──────────────────────────────────────────────── */
+  --radius-sm:   0.25rem;  /* 4px  */
+  --radius-md:   0.5rem;   /* 8px  */
+  --radius-lg:   0.75rem;  /* 12px */
+  --radius-xl:   1rem;     /* 16px */
+  --radius-full: 9999px;
+
+  /* ── Shadows ────────────────────────────────────────────────────── */
+  --shadow-sm:  0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --shadow-md:  0 4px 12px -2px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+  --shadow-lg:  0 16px 40px -8px rgba(0, 0, 0, 0.12), 0 4px 12px -4px rgba(0, 0, 0, 0.06);
+  --shadow-header: 0 1px 0 var(--color-border), 0 2px 16px -4px rgba(0,0,0,0.06);
+
+  /* ── Transitions ────────────────────────────────────────────────── */
+  /*
+    Why name durations semantically?
+    "fast" and "base" communicate intent. If you change --duration-base
+    from 200ms to 180ms, every component using it updates at once.
+  */
+  --duration-fast:   120ms;
+  --duration-base:   200ms;
+  --duration-slow:   350ms;
+  --duration-slower: 500ms;
+
+  --ease-out:     cubic-bezier(0.0, 0, 0.2, 1);
+  --ease-in:      cubic-bezier(0.4, 0, 1, 1);
+  --ease-in-out:  cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring:  cubic-bezier(0.34, 1.56, 0.64, 1);  /* slight overshoot */
+  --ease-smooth:  cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+  /* ── Z-index scale ───────────────────────────────────────────────── */
+  /*
+    Name your z-index values. Avoid magic numbers like z-index: 9999.
+    This scale communicates stacking intent clearly.
+  */
+  --z-below:    -1;
+  --z-base:      0;
+  --z-raised:    10;    /* cards, panels */
+  --z-sticky:    100;   /* sticky elements */
+  --z-dropdown:  200;   /* dropdowns */
+  --z-header:    300;   /* the header itself */
+  --z-modal:     400;   /* modals/dialogs */
+  --z-toast:     500;   /* notifications */
+  --z-tooltip:   600;   /* tooltips */
+
+  /* ── Focus ring ─────────────────────────────────────────────────── */
+  /*
+    Centralised focus ring token. Change this once to update all
+    focus indicators across the site. WCAG 2.4.11 requires focus
+    indicators to have at least 3:1 contrast ratio.
+  */
+  --focus-ring-color:  var(--color-amber-500);
+  --focus-ring-width:  3px;
+  --focus-ring-offset: 3px;
+  --focus-ring: 0 0 0 var(--focus-ring-width) var(--focus-ring-color);
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────
+   2. CSS RESET & BASE
+   ─────────────────────────────────────────────────────────────────────
+   We write a minimal, deliberate reset rather than using a heavy
+   third-party reset (normalize.css, modern-reset, etc.).
+
+   Why reset at all?
+   Browser default stylesheets differ. The reset eliminates surprising
+   differences and gives us a blank, predictable canvas.
+
+   box-sizing: border-box is the single most important reset.
+   By default (content-box), padding and border ADD to declared width.
+   border-box makes width/height include padding and border — intuitive.
+*/
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  /*
+    scroll-behavior: smooth — animates anchor link jumps.
+    We override this for users who prefer reduced motion below.
+    font-size: 100% ensures 1rem = user's browser font preference
+    (usually 16px). Never set html { font-size: 62.5% } as a "trick"
+    — this breaks user font size accessibility settings.
+  */
+  scroll-behavior: smooth;
+  font-size: 100%;
+  -webkit-text-size-adjust: 100%; /* prevents iOS from inflating font sizes */
+  hanging-punctuation: first last; /* typographic nicety in supporting browsers */
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-normal);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg);
+
+  /*
+    font-optical-sizing: auto — enables the font's built-in optical
+    size adjustments. At small sizes, the font gets slightly wider/
+    heavier for readability. At display sizes, it gets more delicate.
+    Only affects variable fonts with an 'opsz' axis.
+  */
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;  /* Smoother on macOS/iOS */
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/*
+  Remove default list styling.
+  We deliberately use role="list" on <ul> elements in HTML where we
+  reset list-style, because Safari strips list semantics from
+  unstyled lists.
+*/
+ul, ol {
+  list-style: none;
+}
+
+/*
+  Links: remove default underline, inherit color.
+  We'll add underlines back where needed for readability.
+  WCAG 1.4.1: links in body text must be distinguishable from
+  surrounding text by more than color alone — so add underline
+  to body text links.
+*/
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/*
+  Images and media: prevent overflow, maintain aspect ratios.
+*/
+img, picture, video, canvas, svg {
+  display: block;
+  max-width: 100%;
+}
+
+/* Inherit fonts in form elements (browser default is system-ui, inconsistent) */
+input, button, textarea, select {
+  font: inherit;
+}
+
+/*
+  Prevent typography from overflowing containers.
+  balance: wrap headings so no orphaned last word on short final line.
+  (Supported in Chrome 114+, Firefox 121+; no visual downside if unsupported)
+*/
+h1, h2, h3, h4, h5, h6 {
+  text-wrap: balance;
+  font-family: var(--font-display);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+}
+
+p {
+  text-wrap: pretty; /* Avoids orphans in paragraph text */
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────
+   3. TYPOGRAPHY SCALE (Headings)
+─────────────────────────────────────────────────────────────────────── */
+h1 { font-size: clamp(var(--text-3xl), 5vw, var(--text-5xl)); font-weight: var(--weight-extrabold); }
+h2 { font-size: clamp(var(--text-2xl), 3.5vw, var(--text-4xl)); }
+h3 { font-size: clamp(var(--text-xl),  2.5vw, var(--text-2xl)); }
+h4 { font-size: var(--text-xl); }
+h5 { font-size: var(--text-lg); }
+h6 { font-size: var(--text-base); font-weight: var(--weight-semibold); }
+
+/*
+  clamp(min, preferred, max) for fluid typography:
+  - Scales with viewport width between min and max
+  - No media query needed for font size changes
+  - min should be readable on smallest viewport
+  - max should be comfortable at widest viewport
+*/
+
+
+/* ─────────────────────────────────────────────────────────────────────
+   4. ACCESSIBILITY UTILITY CLASSES
+   ─────────────────────────────────────────────────────────────────────
+   These are the only "utility" classes we use, because they solve a
+   specific accessibility need that has no pure-HTML equivalent.
+*/
+
+/*
+  .visually-hidden (also called .sr-only)
+  Hides content visually while keeping it accessible to screen readers.
+
+  DO NOT USE:
+  - display: none       — hides from screen readers too
+  - visibility: hidden  — hides from screen readers too
+  - opacity: 0          — hides visually but element still occupies space
+
+  USE FOR: icon button labels, form labels you want hidden, skip links
+  before they're focused.
+
+  How it works: position absolute + 1×1 pixel + overflow hidden + clip.
+  The clip-path and clip properties are both used for max browser support.
+*/
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/*
+  .visually-hidden-focusable
+  Like .visually-hidden but the element becomes VISIBLE when focused.
+  Used for the skip navigation link.
+*/
+.visually-hidden-focusable:not(:focus):not(:focus-within) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────
+   5. SKIP LINK
+   ─────────────────────────────────────────────────────────────────────
+   Visually hidden until focused. When tab is pressed on page load,
+   this is the first element focused and it becomes visible.
+*/
+.skip-link {
+  position: fixed;
+  top: var(--space-4);
+  left: 50%;
+  transform: translateX(-50%) translateY(calc(-100% - var(--space-4)));
+  z-index: var(--z-toast); /* Must be above everything, including header */
+
+  background-color: var(--color-action);
+  color: var(--color-action-text);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  font-family: var(--font-display);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  padding: var(--space-3) var(--space-6);
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+/*
+  :focus-visible vs :focus
+  :focus fires on click AND keyboard navigation.
+  :focus-visible fires ONLY when the browser determines the user
+  is navigating by keyboard (or other AT). This means click-focused
+  buttons don't show the focus ring, but keyboard-focused ones do.
+  Use :focus-visible for most UI elements.
+  The exception: form inputs should show focus ring on click too,
+  so use :focus there.
+*/
+.skip-link:focus-visible {
+  transform: translateX(-50%) translateY(0);
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────
+   6. SITE HEADER
+   ─────────────────────────────────────────────────────────────────────
+*/
+.site-header {
+  /*
+    position: sticky; top: 0
+    The header sticks to the top of the viewport when scrolled past.
+    Unlike position: fixed, it stays in document flow so content
+    naturally sits below it — no padding-top hack on <body>.
+
+    One gotcha: sticky only works if no ancestor has overflow: hidden
+    or overflow: auto set. If your header isn't sticking, check ancestors.
+
+    Another option: position: fixed
+    Pros: Works even with overflow-hidden ancestors
+    Cons: Requires padding-top on <body> equal to header height,
+          which is fragile with dynamic heights, zoom, and font scaling.
+  */
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
+
+  width: 100%;
+  height: var(--header-height);
+
+  /*
+    backdrop-filter for frosted glass effect.
+    The semi-transparent background shows a blur of the content beneath.
+    background-color uses an alpha value to let the blur show through.
+
+    Note: backdrop-filter requires a non-opaque background to be visible.
+    Fallback: the alpha background still looks decent without blur support.
+  */
+  background-color: var(--header-bg-alpha);
+  backdrop-filter: var(--header-blur);
+  -webkit-backdrop-filter: var(--header-blur); /* Safari prefix still needed */
+
+  border-bottom: 1px solid var(--header-border);
+  box-shadow: var(--shadow-header);
+
+  /*
+    Transition the box-shadow for a subtle "lift" effect when user scrolls.
+    (Controlled by a tiny JS class toggle, or CSS :has() if you prefer)
+    We'll use a data attribute approach that JS can set on <body>.
+  */
+  transition: box-shadow var(--duration-base) var(--ease-out),
+              background-color var(--duration-base) var(--ease-out);
+}
+
+/*
+  Inner wrapper: constrains content width and handles flex layout.
+  This separation (full-width element + constrained inner) is the
+  standard pattern for full-bleed backgrounds with centered content.
+*/
+.site-header__inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+
+  max-width: var(--max-width-content);
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────
+   7. LOGO
+─────────────────────────────────────────────────────────────────────── */
+.site-logo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0; /* Never shrink the logo */
+  color: var(--color-text-primary);
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.site-logo:hover {
+  opacity: 0.75;
+}
+
+.site-logo:focus-visible {
+  outline: none;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--focus-ring);
+}
+
+.site-logo__icon {
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  color: var(--color-action);
+}
+
+.site-logo__name {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-extrabold);
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────
+   8. NAVIGATION
+─────────────────────────────────────────────────────────────────────── */
+.site-nav {
+  /*
+    margin-left: auto pushes the nav to sit beside the logo,
+    leaving space for header-actions on the right.
+    This is simpler than trying to center the nav absolutely.
+    We use flex on the parent and auto-margin here.
+  */
+  margin-left: auto;
+}
+
+.nav-list {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.nav-item {
+  position: relative; /* Establish stacking context for dropdowns */
+}
+
+/*
+  Base nav link style.
+  Applied to both <a class="nav-link"> and <summary class="nav-link nav-dropdown__trigger">.
+  This single class handles both cases — if you later need to differentiate,
+  create a modifier class, but keep the shared base here.
+*/
+.nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-wide);
+  color: var(--color-text-secondary);
+
+  cursor: pointer;
+  white-space: nowrap;
+
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
+}
+
+.nav-link:hover {
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-muted);
+}
+
+/* Current page indicator */
+.nav-link[aria-current="page"] {
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-muted);
+}
+
+.nav-link:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  color: var(--color-text-primary);
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────
+   9. DROPDOWN MENUS (details/summary pattern)
+   ─────────────────────────────────────────────────────────────────────
+
+   How the <details>/<summary> CSS pattern works:
+   - <details> has an [open] attribute when expanded (set by browser)
+   - We target [open] to show the dropdown menu
+   - Without [open], the menu is hidden
+   - The <summary> loses its default ::marker (the triangle) via
+     list-style: none or display: block
+
+   Key CSS techniques:
+   - The submenu uses position: absolute to float above page content
+   - clip-path for the reveal animation (more performant than max-height)
+   - transform + opacity for the enter animation
+*/
+
+/* Remove browser default marker/triangle from <summary> */
+details > summary {
+  list-style: none; /* Firefox */
+  cursor: pointer;
+}
+
+/* Chrome/Safari remove the ::marker pseudo-element */
+details > summary::-webkit-details-marker {
+  display: none;
+}
+
+/*
+  The dropdown trigger indicator (chevron arrow).
+  We use a CSS-only chevron via ::after rather than an SVG icon.
+  This keeps the HTML clean and the arrow is easily customizable in CSS.
+*/
+.nav-dropdown__trigger::after {
+  content: '';
+  display: inline-block;
+  width: 0.4em;
+  height: 0.4em;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg) translateY(-0.15em);
+  transition: transform var(--duration-fast) var(--ease-out);
+  flex-shrink: 0;
+}
+
+/*
+  When <details> is open, rotate the chevron to point up.
+  The [open] attribute is set by the browser on the <details> element.
+  We use the :has() pseudo-class to target the <summary> inside an
+  open <details>. This is one of the most powerful modern CSS selectors.
+
+  Alternative without :has():
+  details[open] .nav-dropdown__trigger::after { transform: rotate(-135deg); }
+  This works equally well if :has() support is a concern.
+*/
+details[open] > .nav-dropdown__trigger::after {
+  transform: rotate(-135deg) translateY(-0.15em);
+}
+
+/*
+  The dropdown menu panel.
+  position: absolute floats it over page content.
+  We set explicit coordinates to align with the trigger.
+*/
+.nav-dropdown__menu {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  left: 50%;
+  transform: translateX(-50%) translateY(-8px);
+
+  min-width: 14rem;
+  padding: var(--space-2);
+
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+
+  opacity: 0;
+  visibility: hidden;    /* visibility: hidden hides from AT until visible */
+  pointer-events: none;  /* Prevent click-through when invisible */
+
+  /*
+    The animation:
+    - opacity: 0 → 1 (fade in)
+    - transform translateY: -8px → 0 (slide down slightly)
+    - Using these two together creates a natural "drop" feel.
+
+    Why not max-height animation?
+    max-height: 0 → auto doesn't animate — you must use a large max
+    value like max-height: 300px which creates a slow, jarring reveal.
+    opacity + transform is always smoother and more natural.
+
+    Why not clip-path?
+    clip-path is great but causes text rendering artifacts in some browsers.
+    For dropdowns, opacity + transform is the professional standard.
+  */
+  transition:
+    opacity var(--duration-base) var(--ease-out),
+    transform var(--duration-base) var(--ease-out),
+    visibility var(--duration-base);
+}
+
+/* Show the menu when <details> is open */
+details[open] > .nav-dropdown__menu {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+
+.nav-dropdown__link {
+  display: block;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--color-text-secondary);
+
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
+}
+
+.nav-dropdown__link:hover {
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-muted);
+}
+
+.nav-dropdown__link:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  color: var(--color-text-primary);
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────
+   10. HEADER ACTIONS (right side: search + CTA)
+─────────────────────────────────────────────────────────────────────── */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: var(--space-4);
+  flex-shrink: 0;
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────
+   11. SEARCH TOGGLE & PANEL
+─────────────────────────────────────────────────────────────────────── */
+
+/*
+  The <details> container for the search.
+  position: relative establishes the containing block for the
+  absolutely-positioned search panel.
+*/
+.search-toggle {
+  position: relative;
+}
+
+/* The search icon trigger (styled like an icon button) */
+.search-toggle__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+
+  border-radius: var(--radius-full);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.search-toggle__trigger:hover {
+  background-color: var(--color-bg-muted);
+  color: var(--color-text-primary);
+}
+
+.search-toggle__trigger:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-full);
+}
+
+.icon--search {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
+
+/*
+  The search panel drops down from the header.
+  We position it relative to the header's bottom edge rather than
+  the toggle button, so the full search bar appears centered/full-width.
+
+  For a full-width search panel that spans the entire header width,
+  we use fixed positioning anchored to the header.
+*/
+.search-panel {
+  position: fixed;
+  top: var(--header-height);
+  left: 0;
+  right: 0;
+
+  background-color: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+  box-shadow: var(--shadow-md);
+  z-index: var(--z-dropdown);
+
+  /*
+    clip-path reveal animation.
+    clip-path: inset(0 0 100% 0) — clips away 100% from the bottom (invisible)
+    clip-path: inset(0 0 0 0) — fully visible
+
+    This creates a sliding-down reveal effect.
+    It's more performant than height animation because it doesn't
+    trigger layout recalculation (only composited layer changes).
+  */
+  clip-path: inset(0 0 100% 0);
+  visibility: hidden;
+
+  transition:
+    clip-path var(--duration-slow) var(--ease-out),
+    visibility var(--duration-slow);
+}
+
+details[open].search-toggle > .search-panel {
+  clip-path: inset(0 0 0 0);
+  visibility: visible;
+}
+
+.search-panel__inner {
+  max-width: var(--max-width-content);
+  margin: 0 auto;
+  padding: var(--space-6) var(--gutter);
+}
+
+.search-form {
+  display: flex;
+  gap: var(--space-2);
+  max-width: 40rem;
+  margin: 0 auto;
+}
+
+.search-form__input {
+  flex: 1;
+  height: 3rem;
+  padding: 0 var(--space-5);
+
+  background-color: var(--color-bg-subtle);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-full);
+
+  font-size: var(--text-base);
+  color: var(--color-text-primary);
+
+  transition: border-color var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.search-form__input:focus {
+  /* Use :focus not :focus-visible for inputs — users expect focus ring on click */
+  outline: none;
+  border-color: var(--color-action);
+  box-shadow: var(--focus-ring);
+  background-color: var(--color-bg);
+}
+
+.search-form__input::placeholder {
+  color: var(--color-text-secondary);
+  opacity: 0.7;
+}
+
+.search-form__submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  flex-shrink: 0;
+
+  background-color: var(--color-action);
+  color: var(--color-action-text);
+  border: none;
+  border-radius: var(--radius-full);
+
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-out),
+              transform var(--duration-fast) var(--ease-spring);
+}
+
+.search-form__submit:hover {
+  background-color: var(--color-action-hover);
+  transform: scale(1.05);
+}
+
+.search-form__submit:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.search-form__submit:active {
+  transform: scale(0.97);
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────
+   12. BUTTONS
+   ─────────────────────────────────────────────────────────────────────
+
+   Button philosophy:
+   - .btn: base class, handles layout and shared structure
+   - .btn--primary: the main action style (dark fill)
+   - .btn--ghost: secondary style (transparent)
+   - .btn--large: size modifier
+
+   Why NOT utility classes for buttons?
+   Utility classes (bg-black text-white px-6 py-3 rounded-full) describe
+   implementation details, not purpose. If you change the design,
+   you must update every instance. With component classes, you change
+   one rule set in CSS. This is the "separation of concerns" principle.
+*/
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+
+  padding: var(--space-3) var(--space-6);
+  border-radius: var(--radius-full);
+  border: 2px solid transparent;
+
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  white-space: nowrap;
+
+  cursor: pointer;
+  text-decoration: none;
+  line-height: 1;
+
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-spring),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn--primary {
+  background-color: var(--color-action);
+  color: var(--color-action-text);
+  border-color: var(--color-action);
+}
+
+.btn--primary:hover {
+  background-color: var(--color-action-hover);
+  border-color: var(--color-action-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn--primary:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.btn--large {
+  padding: var(--space-4) var(--space-8);
+  font-size: var(--text-base);
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────
+   13. MOBILE NAVIGATION TOGGLE (hamburger)
+─────────────────────────────────────────────────────────────────────── */
+
+/* Hidden on desktop */
+.nav-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: var(--space-2);
+
+  background: none;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  color: var(--color-text-primary);
+}
+
+.nav-toggle:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.nav-toggle__bar {
+  display: block;
+  width: 1.25rem;
+  height: 2px;
+  background-color: currentColor;
+  border-radius: 2px;
+  transition: transform var(--duration-base) var(--ease-in-out),
+              opacity var(--duration-fast) var(--ease-out);
+  pointer-events: none;
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────
+   14. RESPONSIVE — MOBILE HEADER
+   ─────────────────────────────────────────────────────────────────────
+
+   Breakpoint strategy: content-based, not device-based.
+   The header breaks at the point where it starts to feel cramped.
+   We test this by resizing the browser, not by targeting phone specs.
+
+   Mobile-first vs desktop-first:
+   This stylesheet is desktop-first (base styles are for desktop,
+   media queries adjust for mobile). For a simpler component like this,
+   either approach works. For large applications, mobile-first is
+   generally preferred (fewer overrides, better performance on mobile).
+*/
+@media (max-width: 768px) {
+
+  .nav-toggle {
+    display: flex; /* Show hamburger on mobile */
+    order: 3;      /* Push to end of flex row */
+  }
+
+  /* The site nav collapses on mobile */
+  .site-nav {
+    position: fixed;
+    top: var(--header-height);
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    background-color: var(--color-bg);
+    border-top: 1px solid var(--color-border);
+    overflow-y: auto;
+    padding: var(--space-4);
+
+    /* Hidden off-screen to the right by default */
+    transform: translateX(100%);
+    visibility: hidden;
+    transition:
+      transform var(--duration-slow) var(--ease-out),
+      visibility var(--duration-slow);
+
+    z-index: var(--z-dropdown);
+
+    /* Reset margin from desktop */
+    margin-left: 0;
+  }
+
+  /* JS toggles .is-open on .site-nav */
+  .site-nav.is-open {
+    transform: translateX(0);
+    visibility: visible;
+  }
+
+  .nav-list {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-1);
+  }
+
+  /* Mobile: details dropdowns expand inline, not as floating panels */
+  .nav-dropdown__menu {
+    position: static;
+    transform: none;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    box-shadow: none;
+    border: none;
+    background-color: var(--color-bg-subtle);
+    border-radius: var(--radius-md);
+    padding: var(--space-2);
+    margin-top: var(--space-1);
+
+    /* Hide with max-height on mobile since the panel is inline */
+    max-height: 0;
+    overflow: hidden;
+    padding: 0;
+
+    transition: max-height var(--duration-slow) var(--ease-out),
+                padding var(--duration-base) var(--ease-out);
+  }
+
+  details[open] > .nav-dropdown__menu {
+    max-height: 20rem; /* Large enough for any menu */
+    padding: var(--space-2);
+    transform: none;
+  }
+
+  .nav-link {
+    padding: var(--space-4) var(--space-4);
+    font-size: var(--text-base);
+    width: 100%;
+    border-radius: var(--radius-md);
+  }
+
+  /* Search panel full-width on mobile */
+  .search-panel {
+    left: 0;
+    right: 0;
+  }
+
+  /* Hide CTA button on very small screens to save space */
+  @media (max-width: 480px) {
+    .btn--primary.header-cta {
+      display: none;
+    }
+  }
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────
+   15. DEMO CONTENT (for page scroll demonstration)
+─────────────────────────────────────────────────────────────────────── */
+
+.demo-hero {
+  background: linear-gradient(
+    135deg,
+    var(--color-slate-900) 0%,
+    var(--color-slate-800) 50%,
+    var(--color-slate-700) 100%
+  );
+  color: var(--color-white);
+  min-height: 90vh;
+  display: flex;
+  align-items: center;
+}
+
+.demo-hero__inner {
+  max-width: var(--max-width-content);
+  margin: 0 auto;
+  padding: var(--space-24) var(--gutter);
+}
+
+.demo-hero h1 {
+  color: var(--color-white);
+  margin-bottom: var(--space-6);
+
+  /* Accent color on part of the heading using a <mark> or a span */
+  /* Example usage: <span style="color: var(--color-accent)">remarkable</span> */
+}
+
+.demo-hero p {
+  max-width: var(--max-width-narrow);
+  color: rgba(255,255,255,0.7);
+  font-size: var(--text-lg);
+  line-height: var(--leading-relaxed);
+  margin-bottom: var(--space-10);
+}
+
+.demo-content {
+  padding: var(--space-24) 0;
+  background-color: var(--color-bg-subtle);
+}
+
+.demo-content__inner {
+  max-width: var(--max-width-narrow);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
+.demo-content h2 {
+  margin-bottom: var(--space-6);
+  font-size: var(--text-2xl);
+}
+
+.demo-content p {
+  margin-bottom: var(--space-6);
+  color: var(--color-text-secondary);
+  line-height: var(--leading-relaxed);
+}
+
+.demo-content ul {
+  list-style: disc;
+  padding-left: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  color: var(--color-text-secondary);
+}
+
+.demo-content code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background-color: var(--color-bg-muted);
+  padding: 0.1em 0.4em;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-primary);
+}
+
+.spacer {
+  height: var(--space-24);
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────
+   16. FOOTER
+─────────────────────────────────────────────────────────────────────── */
+.site-footer {
+  background-color: var(--color-slate-900);
+  color: rgba(255,255,255,0.6);
+  padding: var(--space-12) 0;
+}
+
+.site-footer__inner {
+  max-width: var(--max-width-content);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+  flex-wrap: wrap;
+}
+
+.site-footer__copy {
+  font-size: var(--text-sm);
+}
+
+.footer-nav {
+  display: flex;
+  gap: var(--space-6);
+}
+
+.footer-nav a {
+  font-size: var(--text-sm);
+  color: rgba(255,255,255,0.5);
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.footer-nav a:hover {
+  color: var(--color-white);
+}
+
+.footer-nav a:focus-visible {
+  outline: none;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 0 0 var(--focus-ring-width) var(--color-amber-400);
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────
+   17. GLOBAL FOCUS STYLES
+   ─────────────────────────────────────────────────────────────────────
+
+   Remove browser default outlines (we've replaced them above with custom
+   focus-visible styles). IMPORTANT: Only do this if you've implemented
+   custom focus styles everywhere. Never remove outlines without a
+   replacement — it's a critical accessibility violation.
+
+   We remove the default :focus outline globally and rely on our
+   :focus-visible implementations in each component above.
+*/
+:focus {
+  /*
+    Do NOT set outline: none here in general.
+    Instead, we let the browser default handle :focus,
+    and only override where we've applied custom :focus-visible styles.
+    This ensures form inputs (which should show focus on click) still
+    get a focus indicator from the browser.
+  */
+}
+
+/* Catch-all: anything focusable that we haven't explicitly styled */
+:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+  border-radius: var(--radius-sm);
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────
+   18. MOTION PREFERENCES
+   ─────────────────────────────────────────────────────────────────────
+
+   prefers-reduced-motion: reduce is set by users who experience
+   vestibular disorders, motion sickness, or epilepsy triggered
+   by animation. This media query is essential for accessibility.
+
+   Strategy: disable or dramatically reduce all transitions and
+   animations. Do NOT remove them entirely — some motion communicates
+   state changes (the dropdown appearing). Instead, make state changes
+   instant (duration: 0ms) so the change still happens but without motion.
+*/
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto; /* Disable smooth scrolling */
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Keep the dropdown visible immediately — just no animation */
+  .nav-dropdown__menu,
+  .search-panel {
+    transition: none;
+    clip-path: none;
+  }
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────
+   19. PRINT STYLES
+   ─────────────────────────────────────────────────────────────────────
+   Often forgotten but professional practice.
+   Users sometimes print web pages for offline reference.
+*/
+@media print {
+  .site-header {
+    position: static; /* Remove sticky for print */
+    box-shadow: none;
+    border-bottom: 1px solid #000;
+  }
+
+  .nav-toggle,
+  .search-toggle,
+  .header-actions .btn {
+    display: none; /* No need for interactive elements in print */
+  }
+
+  .site-nav,
+  .nav-list {
+    /* Show nav items as a plain list in print */
+    display: block;
+  }
+}

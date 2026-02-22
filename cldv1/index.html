@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<!--
+  lang="en": Critical for screen readers to select correct speech engine.
+  Without this, a French-language screen reader may mispronounce your page.
+  Always match this to your actual content language.
+-->
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+
+  <!--
+    viewport meta: The single most important tag for responsive design.
+    - width=device-width: Use the device's actual width, not a simulated 980px desktop width.
+    - initial-scale=1: Don't zoom in or out on load.
+    NOTE: Do NOT add "user-scalable=no" or "maximum-scale=1". That breaks
+    accessibility for low-vision users who rely on pinch-zoom. It also violates WCAG 1.4.4.
+  -->
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!--
+    Description for search engines and social sharing previews.
+    Keep under 160 characters.
+  -->
+  <meta name="description" content="CompanyName — a brief, compelling description of what you do." />
+
+  <!--
+    <title> is read first by screen readers and appears in browser tabs.
+    Pattern: "Page Name | Site Name" — specific first, brand second.
+    The home page is an exception: just the brand name + tagline is fine.
+  -->
+  <title>CompanyName — Tagline Goes Here</title>
+
+  <!-- Preconnect to Google Fonts reduces latency for font loading -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+  <!--
+    font-display=swap: Shows fallback font immediately, swaps when custom font loads.
+    This prevents invisible text (FOIT) during load.
+    Alternative: font-display=optional — never causes layout shift but may not use
+    custom font on slow connections. Good choice for body text.
+  -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap"
+    rel="stylesheet"
+  />
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <!--
+    ═══════════════════════════════════════════════════════════
+    SKIP NAVIGATION LINK
+    ═══════════════════════════════════════════════════════════
+    The very first focusable element on the page. Visually hidden
+    until focused via keyboard (Tab key). When activated, it jumps
+    focus directly to <main>, bypassing the entire header.
+
+    Why it matters: Keyboard-only users and screen reader users
+    navigate sequentially. Without this, they must tab through every
+    single header link on every single page before reaching content.
+    This is WCAG 2.4.1 (Bypass Blocks) — Level A, the minimum.
+
+    The href="#main-content" must match the id on your <main> element.
+  -->
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <!--
+    ═══════════════════════════════════════════════════════════
+    SITE HEADER
+    ═══════════════════════════════════════════════════════════
+    <header> as a direct child of <body> gets the implicit ARIA
+    landmark role of "banner". This tells screen readers this is
+    the primary site header (logo, nav, search).
+
+    You CAN use <header> inside <article> or <section> — in those
+    contexts it does NOT become a banner landmark, just a scoped
+    header for that content block. This is correct and intentional.
+
+    Alternative: <div role="banner"> — works identically for AT
+    (assistive technology), but you lose the semantic HTML element.
+    Always prefer the native element.
+
+    sticky vs fixed: We use position:sticky in CSS.
+    - sticky: element stays in document flow, no layout side effects
+    - fixed: removed from flow, requires manual padding-top on body
+    sticky is almost always the right choice unless you need the
+    header to overlay content (e.g. transparent over a hero image).
+  -->
+  <header class="site-header">
+    <!--
+      Inner wrapper div: The header element itself is full-width for
+      background color purposes. This inner div constrains content
+      to a max-width and handles the flex layout. This pattern
+      (full-bleed element + constrained inner wrapper) is standard.
+    -->
+    <div class="site-header__inner">
+
+      <!--
+        ─── LOGO / COMPANY NAME ────────────────────────────────
+        Wrapped in an <a> linking to the home page.
+        aria-label="CompanyName — Home" on the <a> is important:
+        screen readers announce the link text. If you only have an
+        image logo with no text, the aria-label IS the accessible name.
+        If you have visible text, aria-label is redundant but harmless.
+
+        We use an <a> not a <button> because it navigates to a URL.
+        Rule: <a> for navigation, <button> for actions.
+
+        The <span> lets us style the text independently of the link
+        underline/color behavior.
+      -->
+      <a href="/" class="site-logo" aria-label="CompanyName — Home">
+        <!--
+          SVG logo inline vs <img>:
+          - Inline SVG: styleable with CSS (fill: currentColor), no extra HTTP request
+          - <img src="logo.svg">: can't style with CSS, but cached separately
+          For a simple wordmark or icon, inline is usually better.
+          For complex logos, use <img> with a meaningful alt attribute.
+        -->
+        <svg class="site-logo__icon" viewBox="0 0 32 32" fill="none" aria-hidden="true" focusable="false">
+          <!--
+            aria-hidden="true": This SVG is decorative alongside visible text.
+            Screen readers should ignore it — the <a>'s text provides the name.
+            focusable="false": Prevents IE/Edge from making the SVG tabbable.
+          -->
+          <rect width="32" height="32" rx="8" fill="currentColor" opacity="0.15"/>
+          <path d="M8 24 L16 8 L24 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M10.5 18.5 H21.5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+        <span class="site-logo__name">CompanyName</span>
+      </a>
+
+      <!--
+        ─── PRIMARY NAVIGATION ─────────────────────────────────
+        <nav> creates an ARIA navigation landmark.
+        aria-label differentiates this from other <nav>s on the page
+        (e.g. footer nav, breadcrumbs). Without it, multiple navs
+        become indistinguishable to screen reader users.
+
+        Alternative: <nav aria-labelledby="nav-heading"> where
+        nav-heading is a visually-hidden <h2>. Both are valid.
+        aria-label is simpler when there's no visible heading.
+      -->
+      <nav class="site-nav" aria-label="Main navigation">
+        <!--
+          role="list": Defensive attribute.
+          Some CSS resets (including Safari's UA stylesheet) strip list
+          semantics from <ul> elements with list-style:none. Adding
+          role="list" explicitly preserves the "X items" announcement
+          that helps screen reader users understand the structure.
+          It's redundant in most browsers but costs nothing.
+        -->
+        <ul class="nav-list" role="list">
+
+          <!-- ── Simple nav item ────────────────────────────── -->
+          <li class="nav-item">
+            <!--
+              aria-current="page" should be added to the link for the
+              current page. This announces "current" to screen readers
+              and lets you style the active state with CSS:
+              a[aria-current="page"] { ... }
+              Remove it from all other links dynamically (server-side
+              or with a tiny JS snippet on page load).
+            -->
+            <a href="/about" class="nav-link">About</a>
+          </li>
+
+          <!--
+            ── Nav item with SUBMENU (uses <details>/<summary>) ──
+            Why <details>/<summary> instead of JS?
+
+            <details> is a native HTML disclosure widget:
+            - <summary> gets implicit role="button" automatically
+            - Toggles open/closed on click, Enter, and Space
+            - Reports expanded state to screen readers natively
+              (no manual aria-expanded needed)
+            - Zero JavaScript required for basic toggle behavior
+
+            The <details> element has an `open` attribute when expanded.
+            We use CSS attribute selectors [open] to style the open state.
+
+            Tradeoff vs pure JS approach:
+            - PRO: No JS, fully accessible out of the box
+            - CON: No built-in "close on outside click" behavior
+              (you'd need a tiny JS event listener for that)
+            - CON: Only one <details> can't be auto-closed when another opens
+              (again, small JS fixes this)
+
+            For a production site you'd add ~10 lines of JS for those
+            behaviors, but the HTML/CSS foundation here is solid either way.
+
+            The checkbox hack (alternative):
+            - Hidden <input type="checkbox"> + <label> + CSS ~ sibling selector
+            - Works without JS but <label> is not semantically a button
+            - Screen readers handle it poorly
+            - Never use the checkbox hack — <details> is strictly better
+          -->
+          <li class="nav-item nav-item--has-dropdown">
+            <details class="nav-dropdown">
+              <!--
+                <summary> is the clickable trigger.
+                It gets implicit role="button" and keyboard support.
+                The browser handles aria-expanded automatically.
+
+                We add a visual indicator arrow via CSS ::after pseudo-element
+                rather than an extra icon element, keeping the HTML clean.
+
+                Note: Do NOT put an <a> inside <summary> for submenu triggers.
+                The top-level "Services" item is a toggle, not a navigation link.
+                If "Services" should also be a page, you need JS to separate
+                the click-to-navigate vs click-to-toggle behaviors.
+              -->
+              <summary class="nav-link nav-dropdown__trigger">
+                Services
+              </summary>
+              <!--
+                The submenu panel. Hidden by default via CSS (details:not([open]) .menu).
+                Using <ul> maintains list semantics for the submenu items too.
+              -->
+              <ul class="nav-dropdown__menu" role="list">
+                <li><a href="/services/strategy" class="nav-dropdown__link">Strategy</a></li>
+                <li><a href="/services/design" class="nav-dropdown__link">Design & UX</a></li>
+                <li><a href="/services/engineering" class="nav-dropdown__link">Engineering</a></li>
+                <li><a href="/services/growth" class="nav-dropdown__link">Growth</a></li>
+              </ul>
+            </details>
+          </li>
+
+          <!-- ── Second nav item with submenu ─────────────────── -->
+          <li class="nav-item nav-item--has-dropdown">
+            <details class="nav-dropdown">
+              <summary class="nav-link nav-dropdown__trigger">
+                Products
+              </summary>
+              <ul class="nav-dropdown__menu" role="list">
+                <li><a href="/products/platform" class="nav-dropdown__link">Platform</a></li>
+                <li><a href="/products/analytics" class="nav-dropdown__link">Analytics</a></li>
+                <li><a href="/products/integrations" class="nav-dropdown__link">Integrations</a></li>
+              </ul>
+            </details>
+          </li>
+
+          <!-- ── Simple nav item ────────────────────────────── -->
+          <li class="nav-item">
+            <a href="/contact" class="nav-link">Contact</a>
+          </li>
+
+        </ul>
+      </nav><!-- /site-nav -->
+
+      <!--
+        ─── HEADER ACTIONS (Search + CTA) ──────────────────────
+        Grouping the search toggle and CTA button together in a <div>
+        lets us position them as a unit. No semantic role needed —
+        it's a layout container, not a landmark.
+      -->
+      <div class="header-actions">
+
+        <!--
+          ── SEARCH TOGGLE (also uses <details>/<summary>) ───────
+          Same pattern as the dropdown nav. The <summary> acts as
+          the search icon button. When opened, the search form appears.
+
+          We use a <form role="search"> for the search form.
+          role="search" is an ARIA landmark — screen reader users
+          can jump directly to the search form via shortcuts.
+
+          The <label> for the input is visually hidden with the
+          .visually-hidden class (NOT display:none, which hides from AT).
+          The label IS read by screen readers. This is correct practice.
+
+          Alternative for the toggle: a <button> with data-attribute +
+          CSS that targets an adjacent sibling (.search-panel) via
+          the :has() selector (e.g. button.is-active + .search-panel).
+          But :has() requires JS to toggle the class, and <details>
+          achieves the same with zero JS.
+        -->
+        <details class="search-toggle">
+          <summary class="search-toggle__trigger" aria-label="Open search">
+            <!--
+              SVG icon for search (magnifying glass)
+              aria-hidden + focusable=false: decorative, the
+              aria-label on <summary> provides the accessible name.
+            -->
+            <svg class="icon icon--search" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                 stroke-linejoin="round" aria-hidden="true" focusable="false">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="m21 21-4.35-4.35"/>
+            </svg>
+          </summary>
+
+          <!--
+            The search panel expands below the header.
+            We use a CSS transition on max-height or clip-path for
+            the reveal animation (see styles.css for details).
+
+            autofocus on the input: browsers should focus this when
+            <details> opens, but support is inconsistent. A single
+            JS event listener (details.addEventListener('toggle', ...))
+            is the robust cross-browser solution for autofocus.
+            We've done our best with CSS (animation trick) but note this.
+          -->
+          <div class="search-panel" role="group" aria-label="Search">
+            <div class="search-panel__inner">
+              <form class="search-form" role="search" action="/search" method="get">
+                <!--
+                  <label> is REQUIRED for every form input.
+                  "for" attribute value must exactly match the input's "id".
+                  visually-hidden keeps it accessible but invisible.
+                  DO NOT use placeholder as a label substitute —
+                  placeholder disappears when typing and has poor contrast.
+                -->
+                <label for="site-search" class="visually-hidden">
+                  Search the site
+                </label>
+                <input
+                  type="search"
+                  id="site-search"
+                  name="q"
+                  class="search-form__input"
+                  placeholder="Search…"
+                  autocomplete="off"
+                  spellcheck="false"
+                />
+                <!--
+                  type="submit" vs <button>: Both work. <button> gives you
+                  more styling flexibility. type="submit" is the default for
+                  <button> inside a form, but being explicit is safer.
+                -->
+                <button type="submit" class="search-form__submit">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                       stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                       aria-hidden="true" focusable="false" width="16" height="16">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                  </svg>
+                  <span class="visually-hidden">Submit search</span>
+                </button>
+              </form>
+            </div>
+          </div>
+        </details>
+
+        <!--
+          ── CALL TO ACTION BUTTON ─────────────────────────────
+          This navigates to a URL, so it's an <a> not a <button>.
+          Cardinal rule: <a> = navigation, <button> = in-page action.
+
+          Using a <button> here would be semantically wrong and would
+          confuse screen reader users who expect buttons to do things
+          (toggle, submit, open modal) not navigate to pages.
+
+          The "btn--primary" modifier follows a BEM-inspired naming
+          convention. We avoid utility classes (like Tailwind) per
+          the project requirements, favoring descriptive class names.
+        -->
+        <a href="/get-started" class="btn btn--primary">
+          Get Started
+          <!--
+            Optional: add an aria-label if the button text is ambiguous
+            in isolation. "Get Started" is clear enough on its own,
+            but "Learn more" would need aria-label="Learn more about [X]"
+          -->
+        </a>
+
+        <!--
+          ── MOBILE MENU TOGGLE ──────────────────────────────────
+          Visible only on small screens (see CSS).
+          This is a <button> (an action, not a link).
+          aria-controls="site-nav-list" points to the nav's id.
+          aria-expanded is set via CSS attr() in modern browsers,
+          but for full support, a tiny JS snippet to toggle
+          aria-expanded and a data-attribute is recommended.
+          We use data-nav-open on <body> toggled by one event listener.
+        -->
+        <button
+          class="nav-toggle"
+          aria-label="Open navigation menu"
+          aria-controls="site-nav-list"
+          aria-expanded="false"
+          data-nav-toggle
+        >
+          <span class="nav-toggle__bar"></span>
+          <span class="nav-toggle__bar"></span>
+          <span class="nav-toggle__bar"></span>
+        </button>
+
+      </div><!-- /header-actions -->
+    </div><!-- /site-header__inner -->
+  </header>
+
+  <!--
+    ═══════════════════════════════════════════════════════════
+    MAIN CONTENT
+    ═══════════════════════════════════════════════════════════
+    One <main> per page. The id="main-content" matches the skip link.
+    tabindex="-1" allows it to receive programmatic focus (from the
+    skip link) without appearing in the natural tab order.
+    Without tabindex="-1", clicking the skip link moves the scroll
+    position but doesn't move keyboard focus — the user still tabs
+    from the top of the document.
+  -->
+  <main id="main-content" tabindex="-1">
+
+    <!--
+      Demo content to show the sticky header working during scroll.
+      In a real site this would be your hero, sections, etc.
+    -->
+    <section class="demo-hero">
+      <div class="demo-hero__inner">
+        <h1>Build something remarkable.</h1>
+        <p>
+          This page demonstrates a fully accessible, semantically correct HTML5
+          header with sticky positioning, keyboard-navigable dropdowns using native
+          &lt;details&gt;/&lt;summary&gt; elements, and a search panel — all with
+          minimal JavaScript.
+        </p>
+        <a href="#features" class="btn btn--primary btn--large">See it in action ↓</a>
+      </div>
+    </section>
+
+    <!--
+      Long scrollable content to demonstrate sticky header behavior
+    -->
+    <section class="demo-content" id="features">
+      <div class="demo-content__inner">
+        <h2>Scroll down to test the sticky header</h2>
+        <p>The header uses <code>position: sticky; top: 0</code> — it stays in document flow until you scroll past it, then it "sticks" to the top of the viewport.</p>
+        <p>Try clicking the "Services" and "Products" nav items to open the dropdown submenus. They use the native HTML <code>&lt;details&gt;</code> disclosure widget — no JavaScript required for the toggle behavior.</p>
+        <p>Click the search icon in the top right to reveal the search panel. Tab through the header to test keyboard accessibility.</p>
+        <!-- Spacer content for scroll demonstration -->
+        <div class="spacer" aria-hidden="true"></div>
+        <h2>Accessibility features on this page</h2>
+        <ul>
+          <li>Skip-to-content link (press Tab on load to reveal it)</li>
+          <li>Semantic landmark regions (header, nav, main)</li>
+          <li>ARIA labels on navigation and icons</li>
+          <li>Native disclosure widgets via &lt;details&gt;/&lt;summary&gt;</li>
+          <li>Proper form labeling with visually-hidden labels</li>
+          <li>Focus-visible ring styles for keyboard navigation</li>
+          <li>Respects prefers-reduced-motion</li>
+          <li>Color contrast ratios meeting WCAG AA</li>
+        </ul>
+        <div class="spacer" aria-hidden="true"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!--
+    <footer> as direct child of <body> = implicit ARIA role "contentinfo".
+    One per page. Contains copyright, secondary nav, legal links, etc.
+  -->
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <p class="site-footer__copy">
+        &copy; <time datetime="2025">2025</time> CompanyName. All rights reserved.
+      </p>
+      <nav aria-label="Footer navigation">
+        <ul class="footer-nav" role="list">
+          <li><a href="/privacy">Privacy Policy</a></li>
+          <li><a href="/terms">Terms of Service</a></li>
+          <li><a href="/accessibility">Accessibility</a></li>
+        </ul>
+      </nav>
+    </div>
+  </footer>
+
+  <!--
+    ═══════════════════════════════════════════════════════════
+    MINIMAL JS — Mobile nav toggle + outside-click to close
+    ═══════════════════════════════════════════════════════════
+    This is intentionally inline for simplicity. In production,
+    put this in an external .js file loaded with defer.
+
+    What we're handling:
+    1. Mobile menu toggle (can't avoid JS for aria-expanded updates)
+    2. Close <details> dropdowns on outside click
+    3. Close mobile nav when a link is clicked
+
+    We're NOT using JS for the dropdown toggle itself —
+    that's handled natively by <details>/<summary>.
+  -->
+  <script>
+    // ── Mobile navigation toggle ──────────────────────────────
+    const navToggle = document.querySelector('[data-nav-toggle]');
+    const siteNav   = document.querySelector('.site-nav');
+
+    if (navToggle && siteNav) {
+      navToggle.addEventListener('click', () => {
+        const isOpen = siteNav.classList.toggle('is-open');
+        // Update aria-expanded to match actual state
+        navToggle.setAttribute('aria-expanded', String(isOpen));
+        // Update aria-label to reflect current action
+        navToggle.setAttribute('aria-label', isOpen ? 'Close navigation menu' : 'Open navigation menu');
+      });
+
+      // Close mobile nav when a link is clicked
+      siteNav.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => {
+          siteNav.classList.remove('is-open');
+          navToggle.setAttribute('aria-expanded', 'false');
+          navToggle.setAttribute('aria-label', 'Open navigation menu');
+        });
+      });
+    }
+
+    // ── Close <details> dropdowns on outside click ────────────
+    // This is the one behavior <details> can't do natively.
+    document.addEventListener('click', (e) => {
+      document.querySelectorAll('details[open]').forEach(details => {
+        if (!details.contains(e.target)) {
+          details.removeAttribute('open');
+        }
+      });
+    });
+
+    // ── Close <details> on Escape key ─────────────────────────
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('details[open]').forEach(details => {
+          details.removeAttribute('open');
+          details.querySelector('summary')?.focus();
+        });
+      }
+    });
+
+    // ── Autofocus search input when search panel opens ─────────
+    const searchToggle = document.querySelector('.search-toggle');
+    if (searchToggle) {
+      searchToggle.addEventListener('toggle', () => {
+        if (searchToggle.open) {
+          searchToggle.querySelector('#site-search')?.focus();
+        }
+      });
+    }
+  </script>
+
+</body>
+</html>
