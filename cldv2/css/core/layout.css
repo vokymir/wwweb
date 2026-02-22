@@ -1,0 +1,126 @@
+/*
+  ═══════════════════════════════════════════════════════════════════════
+  core/layout.css  ─  Container, grid & flow primitives
+  ═══════════════════════════════════════════════════════════════════════
+  PORTABLE: YES — these are layout "atoms", not project-specific.
+  ═══════════════════════════════════════════════════════════════════════
+
+  Q5 — Responsiveness: container queries
+  ─────────────────────────────────────────
+  MEDIA QUERIES respond to the VIEWPORT size.
+    @media (max-width: 768px) { ... }
+    Problem: a sidebar component at 400px wide needs different styles
+    than the same component at 800px wide, but the viewport might be
+    1200px in both cases. Media queries can't distinguish this.
+
+  CONTAINER QUERIES respond to the PARENT ELEMENT's size.
+    @container main-content (max-width: 600px) { ... }
+    This is component-level responsiveness. The component adapts to
+    WHERE it is placed, not what device it's on.
+
+  When to use which:
+  ┌─────────────────────────────────────────────────────────────┐
+  │ Media query     → Page-level layout changes (header, nav,   │
+  │                   overall grid, font scale)                  │
+  │ Container query → Component-level changes (card grid,       │
+  │                   article layout, hero section)             │
+  └─────────────────────────────────────────────────────────────┘
+
+  To enable container queries, a parent element needs:
+    container-type: inline-size;   ← responds to WIDTH changes
+    container-type: size;          ← responds to WIDTH + HEIGHT
+    container-name: card-grid;     ← optional name for targeting
+
+  Q17 — Desktop-first approach
+  ──────────────────────────────
+  Desktop-first means: base styles target wide screens, media queries
+  narrow down to mobile with max-width.
+
+  @media (max-width: 768px) { /* mobile overrides */ }
+
+  Pro: You write less CSS for desktop (the default state is already right).
+  Con: You ship unused styles to mobile users.
+
+  Mobile-first is generally recommended for performance.
+  But with modern CSS (container queries, clamp, grid auto-fit), you
+  write very few breakpoint-specific rules either way. The "pain" of
+  desktop-first vs mobile-first is mostly historical.
+
+  This project is desktop-first per your instruction.
+  The key discipline: keep breakpoint overrides MINIMAL. If you're writing
+  many rules at a breakpoint, reconsider the base styles.
+*/
+
+/* ─── THE CONTAINER PRIMITIVE ────────────────────────────────────────
+   .container is the "content never touches the edges" solution.
+   Apply it to any full-width section that should constrain its content.
+   The fluid --gutter variable (clamp) means no media query needed
+   for horizontal padding.
+*/
+.container {
+  width: 100%;
+  max-width: var(--max-w-content);
+  margin-inline: auto;      /* margin-inline = margin-left + margin-right */
+  padding-inline: var(--gutter);
+}
+
+.container--narrow {
+  max-width: var(--max-w-prose);
+}
+
+.container--wide {
+  max-width: 90rem;  /* 1440px */
+}
+
+/* ─── SECTION SPACING ────────────────────────────────────────────────
+   Consistent vertical rhythm between page sections.
+   Use clamp for fluid spacing too — sections breathe more on wide screens.
+*/
+.section {
+  padding-block: clamp(var(--space-12), 8vw, var(--space-24));
+}
+
+/* ─── GRID PRIMITIVES ────────────────────────────────────────────────
+   auto-fit with minmax creates a responsive grid with ZERO media queries.
+   Columns wrap automatically when they'd be smaller than the minimum.
+   
+   Usage: <div class="grid" style="--min-col: 280px">
+*/
+.grid {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(var(--min-col, 16rem), 1fr)
+  );
+  gap: var(--space-6);
+}
+
+/* ─── FLEX STACK ──────────────────────────────────────────────────────
+   Vertical stack with consistent gap. Most common layout pattern.
+*/
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--stack-gap, var(--space-4));
+}
+
+/* ─── CLUSTER ─────────────────────────────────────────────────────────
+   Horizontal group that wraps naturally. No media query needed.
+*/
+.cluster {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--cluster-gap, var(--space-4));
+}
+
+/* ─── PROSE ───────────────────────────────────────────────────────────
+   For long-form text content. Sets comfortable reading line length.
+*/
+.prose {
+  max-width: var(--max-w-prose);
+}
+
+.prose > * + * {
+  margin-block-start: var(--space-5);  /* vertical rhythm in prose */
+}

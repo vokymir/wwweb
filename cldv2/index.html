@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<!--
+  Q4 — Czech website for children in Pilsen region.
+  lang="cs": critical — screen readers use this to load the correct
+  Czech speech synthesis engine and correct pronunciation rules.
+  Without it, English rules mispronounce Czech diacritics (č, ř, ž, š…).
+-->
+<html lang="cs" data-theme="">
+<!--
+  data-theme="": empty = "use OS preference" (see tokens.css).
+  JS sets data-theme="dark" or data-theme="light" on manual toggle.
+  The empty attribute means the CSS fallback (prefers-color-scheme) applies.
+-->
+<head>
+  <meta charset="UTF-8" />
+
+  <!--
+    viewport: width=device-width prevents the 980px simulated desktop.
+    initial-scale=1: no zoom manipulation.
+    NEVER add user-scalable=no — violates WCAG 1.4.4 (Resize Text).
+  -->
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description"
+    content="Klubíčko Plzeň — zábavné aktivity, kroužky a tábory pro děti v Plzeňském kraji." />
+
+  <!--
+    Page title pattern: "Page | Site" — specific first, brand second.
+    Screen readers read the title first — make it meaningful.
+  -->
+  <title>Klubíčko Plzeň — Pro děti a rodiny v Plzeňském kraji</title>
+
+  <!--
+    Theme-colour flash prevention — one of the rare exceptions to
+    "no inline scripts". This MUST be in <head>, before any CSS,
+    to prevent a flash of wrong theme colour on page load.
+  -->
+  <script>
+    const t = localStorage.getItem('theme');
+    if (t) document.documentElement.dataset.theme = t;
+  </script>
+
+  <!-- Preconnect hints reduce latency for external font servers -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap"
+    rel="stylesheet"
+  />
+
+  <!--
+    Single <link> in production (bundled).
+    During development this is @import-ed from main.css.
+  -->
+  <link rel="stylesheet" href="css/main.css" />
+</head>
+
+<body>
+
+  <!--
+    Q2 — Skip link: targets <main id="main">.
+    tabindex="-1" on <main> (below) allows it to receive focus.
+    The skip-link class handles both the hidden AND focused/visible states.
+    Do NOT combine with .visually-hidden (see Q14 in utilities.css).
+  -->
+  <a href="#main" class="skip-link">Přeskočit na obsah</a>
+
+  <!--
+    ═══════════════════════════════════════════════════════════════
+    <header> as direct child of <body> = implicit ARIA role "banner"
+    Q1 — What is ARIA?
+
+    ARIA (Accessible Rich Internet Applications) is a W3C spec that
+    provides a vocabulary of attributes (roles, states, properties)
+    you can add to HTML to communicate meaning to assistive technology
+    when native HTML semantics aren't sufficient.
+
+    IMPLICIT roles: native HTML elements carry roles automatically.
+    You don't write role="navigation" on <nav> — it's implicit.
+    The browser exposes these to the accessibility tree.
+
+    Here: <header> at body level → implicit role="banner"
+    <main>                     → implicit role="main"
+    <nav>                      → implicit role="navigation"
+    <footer> at body level     → implicit role="contentinfo"
+    <button>                   → implicit role="button"
+    <a href="...">             → implicit role="link"
+    <input type="checkbox">    → implicit role="checkbox"
+
+    EXPLICIT ARIA: add when native semantics aren't enough.
+    Examples:
+      role="search"         — no native HTML element for search landmark
+      aria-label="..."      — names an element (for unlabelled icons)
+      aria-expanded="true"  — communicates toggle state
+      aria-current="page"   — marks the active navigation item
+      aria-hidden="true"    — hides decorative content from screen readers
+      aria-live="polite"    — announces dynamic content changes
+
+    Rule of thumb: use native HTML first, ARIA only when HTML alone
+    can't convey the needed semantics. ARIA overrides native semantics,
+    so incorrect ARIA is worse than no ARIA.
+    ═══════════════════════════════════════════════════════════════
+  -->
+  <header class="site-header">
+    <div class="site-header__inner">
+
+      <!--
+        ─── LOGO ───────────────────────────────────────────────────
+        <a> (navigation) not <button> (action).
+        aria-label provides a complete accessible name even if the
+        SVG text is hard to read or the SVG loads slowly.
+
+        Q6 — Inline SVG: we assume a ~50-line logo SVG is pasted here.
+        Key styling rules:
+          1. Remove width/height from SVG element — control size via CSS.
+          2. Set fill="none" and use stroke="currentColor" or
+             fill="currentColor" so CSS can recolor it.
+          3. Give logical class names to path groups you need to style.
+          4. aria-hidden="true" on decorative SVGs (the <a> text
+             or aria-label provides the accessible name).
+          5. focusable="false" prevents IE/old Edge from tab-stopping the SVG.
+
+        Do NOT wrap the logo in <figure>. <figure> is for:
+        - Article illustrations
+        - Data charts referenced from body text
+        - Code blocks with captions
+        NOT for UI/navigation elements.
+      -->
+      <a href="/" class="site-logo" aria-label="Klubíčko Plzeň — domovská stránka">
+        <!--
+          Your ~50-line inline SVG goes here.
+          CSS to control it is in header.css under .site-logo__icon.
+          Example structure of a styled inline SVG:
+        -->
+        <svg
+          class="site-logo__icon"
+          viewBox="0 0 48 48"
+          fill="none"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <!-- Main shape: inherits color from CSS via currentColor -->
+          <circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="2.5"/>
+          <!-- Accent element: styled via .site-logo__icon-dot class -->
+          <circle cx="24" cy="24" r="6" class="site-logo__icon-dot" fill="currentColor"/>
+          <!-- Decorative paths: color also via currentColor -->
+          <path
+            d="M24 4 C24 4 32 12 32 24 C32 36 24 44 24 44 C24 44 16 36 16 24 C16 12 24 4 24 4Z"
+            stroke="currentColor"
+            stroke-width="1.5"
+            opacity="0.4"
+          />
+          <path
+            d="M4 24 L44 24"
+            stroke="currentColor"
+            stroke-width="1.5"
+            opacity="0.4"
+          />
+        </svg>
+        <!--
+          Logo text — hidden by container query when header is too narrow.
+          See header.css: @container header-inner (max-width: 420px)
+        -->
+        <span class="site-logo__name">Klubíčko</span>
+      </a>
+
+      <!--
+        ─── MAIN NAVIGATION ────────────────────────────────────────
+        aria-label differentiates this from other <nav> elements
+        (footer nav, breadcrumbs). Without it, multiple navs become
+        "navigation, navigation, navigation" for screen reader users.
+
+        aria-hidden="true" set by JS when mobile panel is closed.
+        This prevents screen readers from reading a visually hidden panel.
+        aria-hidden="false" when panel is open.
+        Default here is "true" on mobile (handled by media query).
+      -->
+      <nav
+        class="site-nav"
+        aria-label="Hlavní navigace"
+        aria-hidden="false"
+        id="site-nav"
+      >
+        <!--
+          role="list": defensive attribute.
+          Safari strips list semantics from unstyled <ul> elements.
+          Explicit role="list" preserves the "X položek" announcement.
+        -->
+        <ul class="site-nav__list" role="list">
+
+          <!-- ── Simple link ─────────────────────────────────────── -->
+          <li class="site-nav__item">
+            <!--
+              aria-current="page": add this attribute on the link that
+              matches the CURRENT page. Remove it from all others.
+              Screen readers announce "current" before the link text.
+              CSS hook: .site-nav__link[aria-current="page"]
+              Set this server-side or with a small JS check on page load.
+            -->
+            <a href="/aktivity" class="site-nav__link">Aktivity</a>
+          </li>
+
+          <!-- ── Link with dropdown (details/summary) ─────────────── -->
+          <li class="site-nav__item">
+            <!--
+              <details> = native disclosure widget.
+              The [open] attribute is added/removed by the browser on toggle.
+              CSS targets [open] to show/animate the dropdown.
+            -->
+            <details>
+              <!--
+                <summary> gets implicit role="button" + keyboard support
+                (Enter, Space) natively. Browser manages [aria-expanded]
+                equivalent for screen readers. Zero JS needed for toggle.
+                We share the .site-nav__link style via dual class names.
+              -->
+              <summary class="site-nav__link site-nav__toggle">
+                Program
+              </summary>
+              <!--
+                Submenu panel — styled by .site-nav__dropdown in nav.css.
+                role="list" on <ul> again for Safari.
+              -->
+              <ul class="site-nav__dropdown" role="list">
+                <li><a href="/program/krouzky"   class="site-nav__sub-link">Kroužky</a></li>
+                <li><a href="/program/tabory"     class="site-nav__sub-link">Tábory</a></li>
+                <li><a href="/program/workshopy"  class="site-nav__sub-link">Workshopy</a></li>
+                <li><a href="/program/akce"       class="site-nav__sub-link">Akce</a></li>
+              </ul>
+            </details>
+          </li>
+
+          <!-- ── Second dropdown ────────────────────────────────── -->
+          <li class="site-nav__item">
+            <details>
+              <summary class="site-nav__link site-nav__toggle">
+                O nás
+              </summary>
+              <ul class="site-nav__dropdown" role="list">
+                <li><a href="/o-nas/tym"       class="site-nav__sub-link">Náš tým</a></li>
+                <li><a href="/o-nas/prostory"  class="site-nav__sub-link">Prostory</a></li>
+                <li><a href="/o-nas/pribehy"   class="site-nav__sub-link">Příběhy</a></li>
+              </ul>
+            </details>
+          </li>
+
+          <!-- ── Simple link ─────────────────────────────────────── -->
+          <li class="site-nav__item">
+            <a href="/kontakt" class="site-nav__link">Kontakt</a>
+          </li>
+
+        </ul>
+
+        <!--
+          Q16 — CTA inside mobile nav panel.
+          Hidden on desktop via CSS: .site-nav__cta { display: none }
+          Shown on mobile: @media (max-width: 768px) { display: block }
+          This is a DUPLICATE of the .header-actions__cta link — same href.
+          Only one is ever visible. Screen readers won't encounter both.
+        -->
+        <div class="site-nav__cta">
+          <a href="/prihlaseni" class="btn btn--accent">
+            Přihlásit se
+          </a>
+        </div>
+      </nav>
+
+      <!--
+        ─── HEADER ACTIONS ─────────────────────────────────────────
+        Contains: search trigger, theme toggle, CTA, hamburger.
+      -->
+      <div class="header-actions">
+
+        <!--
+          Q7 — Search trigger: a <button> (action, not navigation).
+          data-search-trigger: JS hook without specificity implications.
+          aria-haspopup="dialog": tells AT that activating this opens a dialog.
+          aria-controls="search-dialog": points to the dialog's id.
+          aria-label: provides the accessible name (no visible text).
+        -->
+        <button
+          class="header-actions__search"
+          aria-label="Hledat"
+          aria-haspopup="dialog"
+          aria-controls="search-dialog"
+          data-search-trigger
+        >
+          <!--
+            Inline SVG search icon.
+            aria-hidden="true": decorative; the button's aria-label is the name.
+            focusable="false": old IE/Edge fix.
+            stroke="currentColor": inherits button's color, works in dark mode.
+          -->
+          <svg
+            class="header-actions__search-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <circle cx="11" cy="11" r="8"/>
+            <path d="m21 21-4.35-4.35"/>
+          </svg>
+        </button>
+
+        <!--
+          Theme toggle button.
+          data-theme-toggle: JS hook.
+          aria-label updated by JS to reflect current state.
+        -->
+        <button
+          class="header-actions__theme"
+          aria-label="Přepnout na tmavý motiv"
+          data-theme-toggle
+        >
+          <!-- Sun icon (shown in dark mode) -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" aria-hidden="true"
+               focusable="false" width="20" height="20">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3"/>
+            <line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/>
+            <line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+        </button>
+
+        <!--
+          Q16 — Desktop CTA: hidden on mobile via CSS.
+          <a> not <button>: this navigates to a URL.
+          Rule: <a href> for navigation, <button> for in-page actions.
+        -->
+        <a
+          href="/prihlaseni"
+          class="btn btn--primary header-actions__cta"
+        >
+          Přihlásit se
+        </a>
+
+        <!--
+          Hamburger: visible only on mobile.
+          aria-expanded="false": initial state. JS updates this on click.
+          aria-controls="site-nav": points to the nav panel.
+          data-hamburger: JS hook.
+          The CSS uses [aria-expanded="true"] to animate bars → ×.
+        -->
+        <button
+          class="hamburger"
+          aria-label="Otevřít navigaci"
+          aria-expanded="false"
+          aria-controls="site-nav"
+          data-hamburger
+        >
+          <span class="hamburger__bar"></span>
+          <span class="hamburger__bar"></span>
+          <span class="hamburger__bar"></span>
+        </button>
+
+      </div><!-- /header-actions -->
+    </div><!-- /site-header__inner -->
+  </header>
+
+  <!--
+    ─── SEARCH DIALOG ──────────────────────────────────────────────
+    Q7 — <dialog> element.
+    id="search-dialog": matches aria-controls on the trigger button.
+    aria-label: provides an accessible name for the dialog region.
+    (Alternative: aria-labelledby pointing to an h2 inside the dialog)
+
+    <dialog> provides natively:
+    - Focus trapping (keyboard stays inside when open)
+    - Escape key closes it
+    - ::backdrop pseudo-element for the overlay
+    - role="dialog" implicit
+    - Returns focus to trigger on close
+
+    JS needs: dialog.showModal() and dialog.close() — that's all.
+  -->
+  <dialog
+    class="search-dialog"
+    id="search-dialog"
+    aria-label="Vyhledávání"
+  >
+    <div class="search-dialog__inner">
+
+      <div class="search-dialog__header">
+        <h2 class="search-dialog__title">Co hledáš?</h2>
+        <button
+          class="search-dialog__close"
+          aria-label="Zavřít vyhledávání"
+        >
+          <!-- × character as content, visually-hidden text as label alternative -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.5" stroke-linecap="round" aria-hidden="true"
+               focusable="false" width="18" height="18">
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <!--
+        role="search": ARIA landmark. Screen reader users can jump
+        directly to the search form via keyboard shortcuts.
+        There's no native HTML element with this role — this is one
+        of the legitimate uses of an explicit ARIA role.
+      -->
+      <form
+        class="search-dialog__form"
+        role="search"
+        action="/hledani"
+        method="get"
+      >
+        <!--
+          label is REQUIRED for every form input.
+          for="search-input" must match input's id="search-input".
+          .visually-hidden hides it visually but keeps it for screen readers.
+          DO NOT use placeholder as the only label — it disappears when typing
+          and has insufficient contrast for WCAG 1.4.3.
+        -->
+        <label for="search-input" class="visually-hidden">
+          Hledat na webu Klubíčka
+        </label>
+        <input
+          type="search"
+          id="search-input"
+          name="q"
+          class="search-dialog__input"
+          placeholder="Kroužky, tábory, akce…"
+          autocomplete="off"
+          spellcheck="false"
+          autofocus
+        />
+        <!--
+          type="submit" is explicit and clear.
+          <button type="submit"> inside a <form> submits the form.
+          The visually-hidden span provides text for screen readers
+          alongside the SVG icon.
+        -->
+        <button type="submit" class="search-dialog__submit btn btn--primary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+               aria-hidden="true" focusable="false" width="16" height="16">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+          <span class="visually-hidden">Hledat</span>
+        </button>
+      </form>
+
+      <!-- Quick search hints -->
+      <div class="search-dialog__hints">
+        <p>Oblíbená hledání:</p>
+        <div class="search-dialog__hint-list" role="list">
+          <button class="search-dialog__hint" type="button" role="listitem">Kroužky pro děti</button>
+          <button class="search-dialog__hint" type="button" role="listitem">Letní tábory</button>
+          <button class="search-dialog__hint" type="button" role="listitem">Akce o víkendu</button>
+          <button class="search-dialog__hint" type="button" role="listitem">Kontakt</button>
+        </div>
+      </div>
+
+    </div>
+  </dialog>
+
+
+  <!--
+    ═══════════════════════════════════════════════════════════════
+    <main> — one per page.
+    id="main": matched by skip link href="#main".
+    tabindex="-1": allows programmatic focus from skip link without
+    adding <main> to the natural tab order (negative tabindex values
+    are focusable by JS/.focus() but invisible to Tab key navigation).
+    ═══════════════════════════════════════════════════════════════
+  -->
+  <main id="main" tabindex="-1">
+
+    <!-- ── HERO ──────────────────────────────────────────────────── -->
+    <section class="hero section">
+      <div class="container hero__inner">
+        <p class="hero__eyebrow">
+          <span>✦</span> Plzeňský kraj
+        </p>
+        <!--
+          The page's one <h1>: describes the entire page.
+          Each page must have exactly one <h1>.
+          Use <em> for visual styling, not for emphasis here
+          (the meaning is the same either way for this decorative use).
+        -->
+        <h1>Místo, kde se <em>děti</em> cítí doma</h1>
+        <p class="hero__lead">
+          Kroužky, tábory a workshopy pro děti od 3 do 15 let
+          v Plzeňském kraji. Přijďte si to užít s námi.
+        </p>
+        <div class="hero__actions">
+          <a href="/program" class="btn btn--accent btn--large">
+            Prozkoumat program
+          </a>
+          <a href="/o-nas" class="btn btn--ghost btn--large">
+            Více o nás
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── DEMO CONTENT (for scroll test) ─────────────────────────── -->
+    <section class="demo-section section">
+      <div class="container demo-section__inner">
+        <h2>Srolujte dolů a otestujte záhlaví</h2>
+        <p>
+          Záhlaví používá <code>position: sticky; top: 0</code> — zůstává
+          v toku dokumentu dokud neskrolujete, pak se „přichytí" na vrchol.
+        </p>
+        <p>
+          Zkuste kliknout na „Program" a „O nás" — otevřou se rozbalovací
+          nabídky pomocí nativního HTML elementu <code>&lt;details&gt;</code>.
+          Žádný JavaScript není potřeba pro samotné přepínání.
+        </p>
+        <p>
+          Na mobilu klikněte na ikonu hamburgeru — navigace se vysune
+          zprava jako postranní panel. CTA tlačítko je uvnitř panelu.
+        </p>
+        <h2>Funkce dostupnosti na této stránce</h2>
+        <ul>
+          <li>Skip link (stiskněte Tab hned po načtení stránky)</li>
+          <li>Sémantické landmarky (header, nav, main, footer)</li>
+          <li>ARIA atributy na navigaci, ikonách a formulářích</li>
+          <li>Nativní <code>&lt;details&gt;</code>/<code>&lt;summary&gt;</code> pro dropdown</li>
+          <li>Správné popisky formulářů pomocí visually-hidden</li>
+          <li>Viditelný focus ring pro klávesnicové ovládání</li>
+          <li>Respektuje prefers-reduced-motion</li>
+          <li>OKLCH barevné schéma s automatickým dark mode</li>
+          <li>Fluidní typografie pomocí <code>clamp()</code></li>
+          <li>Container queries pro responzivitu komponenty</li>
+        </ul>
+        <div class="demo-spacer" aria-hidden="true"></div>
+        <h2>Technické detaily</h2>
+        <p>
+          Barvy jsou definovány v OKLCH — moderním percepčně uniformním
+          barevném prostoru. Dark mode funguje překlopením hodnoty L.
+          Hue je uložen jako CSS proměnná — stačí změnit jedno číslo
+          pro kompletní rebrand webu.
+        </p>
+        <div class="demo-spacer" aria-hidden="true"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!--
+    <footer> as direct child of <body> = implicit ARIA role "contentinfo"
+    (just like <header> = "banner"). One per page.
+  -->
+  <footer class="site-footer">
+    <div class="container site-footer__inner">
+      <p class="site-footer__copy">
+        &copy; <time datetime="2025">2025</time> Klubíčko Plzeň, z.s.
+      </p>
+      <!-- Separate nav landmark for footer links -->
+      <nav aria-label="Patičkové navigace">
+        <ul class="site-footer__nav" role="list">
+          <li><a href="/ochrana-udaju">Ochrana údajů</a></li>
+          <li><a href="/podminky">Podmínky</a></li>
+          <li><a href="/pristupnost">Přístupnost</a></li>
+        </ul>
+      </nav>
+    </div>
+  </footer>
+
+  <!--
+    Q8 — defer attribute: script downloads in parallel, executes AFTER
+    HTML parsing is complete. Safe to reference any DOM element.
+    No DOMContentLoaded listener needed inside the script.
+  -->
+  <script src="js/main.js" defer></script>
+
+</body>
+</html>

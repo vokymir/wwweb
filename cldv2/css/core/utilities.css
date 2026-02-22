@@ -1,0 +1,181 @@
+/*
+  ═══════════════════════════════════════════════════════════════════════
+  core/utilities.css  ─  Accessibility & layout utility classes
+  ═══════════════════════════════════════════════════════════════════════
+  PORTABLE: YES — copy as-is to every project.
+  ═══════════════════════════════════════════════════════════════════════
+*/
+
+
+/* ─────────────────────────────────────────────────────────────────────
+   Q14 — visually-hidden + skip-link: how they combine
+   ─────────────────────────────────────────────────────────────────────
+   WRONG: putting both classes on the element:
+     <a class="skip-link visually-hidden" href="#main">...
+
+   The issue: .visually-hidden uses position:absolute/clip to hide.
+   The skip-link needs to APPEAR on :focus — so it needs its own
+   position:fixed style when focused. Having two competing position
+   declarations causes specificity fights.
+
+   CORRECT APPROACH: .skip-link IS its own class that handles BOTH
+   states — the hidden state AND the focused/visible state.
+   No need to combine with .visually-hidden at all.
+
+   .visually-hidden → permanent hiding (labels, helper text)
+   .skip-link       → hiding UNTIL focused (navigation aid)
+   These serve different purposes. Keep them separate.
+*/
+
+/* ─── VISUALLY HIDDEN ────────────────────────────────────────────────
+   Hides content from sighted users while keeping it accessible to
+   screen readers and other assistive technologies.
+
+   DO NOT USE: display:none or visibility:hidden — those hide from AT too.
+   DO NOT USE: opacity:0 — element is still tabbable and takes up space.
+
+   Use this for:
+   - Icon button labels: <button><svg/><span class="visually-hidden">Close</span></button>
+   - Form labels you want hidden: <label class="visually-hidden" for="q">Search</label>
+   - Extra context for screen readers: "Current item:" before a list
+*/
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ─── SKIP LINK ──────────────────────────────────────────────────────
+   Q2 — Auto-goto main: use href="#main" with <main id="main">
+   tabindex="-1" on <main> allows it to receive focus from the skip link
+   without appearing in natural tab order. Without it, browsers scroll
+   to the element but don't move focus there — keyboard users still
+   tab from the top.
+
+   The .skip-link class handles its OWN hidden/visible states.
+   Hidden state: translated off-screen upward (not clipped like
+   .visually-hidden — we need a smooth transition when it appears).
+   Visible state: :focus-visible slides it into view.
+*/
+.skip-link {
+  position: fixed;
+  top: var(--space-4);
+  left: 50%;
+  transform: translateX(-50%) translateY(calc(-100% - var(--space-6)));
+
+  z-index: var(--z-toast);   /* must be above the header */
+
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-3) var(--space-8);
+  border-radius: var(--radius-full);
+
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
+
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  white-space: nowrap;
+
+  transition: transform var(--duration-base) var(--ease-spring);
+
+  /* No text-decoration on this navigational link */
+  text-decoration: none;
+}
+
+.skip-link:focus-visible {
+  transform: translateX(-50%) translateY(0);
+  outline: var(--focus-width) solid var(--color-accent);
+  outline-offset: var(--focus-offset);
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────
+   Q13 — "clickable-parent" technique
+   ─────────────────────────────────────────────────────────────────────
+   PROBLEM: You have a card with a heading link, body text, and maybe
+   an image. You want the ENTIRE card to be clickable, not just the
+   link text. Options:
+
+   Option A — Wrap the whole card in <a>:
+     <a href="/post"><div class="card">...</div></a>
+     BAD: block-level content inside <a> is invalid in some contexts.
+     Also, if there are multiple interactive elements inside (like a
+     "save" button), they all get swallowed by the outer <a> and nested
+     interactives become unreachable or invalid.
+
+   Option B — The "clickable parent" / "stretched link" pattern:
+     The link inside the card gets a ::after pseudo-element stretched
+     to cover the entire card. The card itself gets position:relative.
+     This is VALID, SEMANTIC HTML. The heading link provides the
+     accessible name. Additional buttons remain independently focusable.
+
+     Used by: Bootstrap (.stretched-link), GitHub card designs,
+     every major design system. NOT outdated. Still the correct approach.
+
+   Option C — The new pointer-events method (experimental):
+     Not yet widely supported. Stick with Option B.
+
+   HOW TO USE:
+     1. Add position:relative to the card container
+     2. Add class="clickable-parent__link" to the PRIMARY link inside
+     3. Other interactive elements (buttons) will be on top thanks
+        to position:relative on them + z-index via .clickable-parent__action
+
+   BEM: this is a utility mixin, not a component, so no block name.
+   Apply to any card-like container.
+*/
+
+/* 1. The card container */
+.clickable-parent {
+  position: relative;
+}
+
+/* 2. The primary link that covers the whole card */
+.clickable-parent__link::after {
+  content: '';
+  position: absolute;
+  inset: 0;   /* shorthand for top:0; right:0; bottom:0; left:0 */
+  border-radius: inherit;   /* respects the card's border-radius */
+  z-index: var(--z-raised);
+}
+
+/* 3. Any other interactive elements that need to sit ABOVE the overlay */
+.clickable-parent__action {
+  position: relative;
+  z-index: calc(var(--z-raised) + 1);
+}
+
+/* Focus ring on the stretched pseudo-element needs special handling */
+.clickable-parent__link:focus-visible::after {
+  outline: var(--focus-width) solid var(--color-accent);
+  outline-offset: var(--focus-offset);
+}
+/* Remove focus from the link itself since ::after gets it */
+.clickable-parent__link:focus-visible {
+  outline: none;
+}
+
+
+/* ─── COLOUR CONTRAST HELPER ──────────────────────────────────────────
+   .sr-announce — for live regions that screen readers should announce
+   when content changes (e.g. search results count, form errors).
+*/
+.sr-announce {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+}

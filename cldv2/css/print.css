@@ -1,0 +1,92 @@
+/*
+  ═══════════════════════════════════════════════════════════════════════
+  print.css  ─  Print styles
+  ═══════════════════════════════════════════════════════════════════════
+  PORTABLE: MOSTLY — the selector list changes, the patterns don't.
+  Copy the structure; update which elements to hide/show.
+  ═══════════════════════════════════════════════════════════════════════
+
+  Q18 — Which parts of CSS are portable?
+  ─────────────────────────────────────────
+  Print styles are ~80% portable. The patterns below repeat on every
+  project; only the class names differ.
+
+  Print design philosophy:
+  - Ink is expensive. Remove decoration, keep information.
+  - URLs should be visible (the user can't click the link).
+  - Avoid page breaks inside important content.
+  - Use pt/cm for sizing (px/rem are screen units).
+*/
+
+@media print {
+
+  /* ── Root adjustments ─────────────────────────────────────────── */
+  :root {
+    /* Override colour tokens with pure print-safe values */
+    --color-text:       #000;
+    --color-text-muted: #333;
+    --color-surface:    #fff;
+    --color-border:     #ccc;
+  }
+
+  html, body {
+    font-size: 11pt;
+    line-height: 1.5;
+    background: white;
+    color: black;
+  }
+
+  /* ── Hide interactive / decorative elements ───────────────────── */
+  .site-header,
+  .hamburger,
+  .header-actions__search,
+  .header-actions__cta,
+  .search-dialog,
+  .site-footer,
+  .skip-link {
+    display: none !important;
+  }
+
+  /* ── Make links show their URL ────────────────────────────────── */
+  a[href]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.85em;
+    color: #555;
+  }
+
+  /* Don't show URL for internal anchors or javascript: links */
+  a[href^="#"]::after,
+  a[href^="javascript:"]::after {
+    content: "";
+  }
+
+  /* ── Prevent awkward page breaks ─────────────────────────────── */
+  h1, h2, h3, h4, h5, h6 {
+    break-after: avoid;
+    page-break-after: avoid;  /* legacy browsers */
+  }
+
+  img, figure, table, pre, blockquote {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* ── Remove shadows and backgrounds ──────────────────────────── */
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+    background-color: transparent !important;
+    backdrop-filter: none !important;
+  }
+
+  /* ── Page margins ─────────────────────────────────────────────── */
+  @page {
+    margin: 2cm;
+  }
+
+  /* ── Widows and orphans (typography terms for print) ─────────── */
+  p {
+    orphans: 3;   /* minimum lines at bottom of a page */
+    widows: 3;    /* minimum lines at top of a page */
+  }
+}

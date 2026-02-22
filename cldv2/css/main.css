@@ -1,0 +1,58 @@
+/*
+  ═══════════════════════════════════════════════════════════════════════
+  main.css  ─  Entry point. Imports all partials in correct cascade order.
+  ═══════════════════════════════════════════════════════════════════════
+
+  Q18 — CSS file decomposition philosophy
+  ─────────────────────────────────────────
+  The CSS cascade depends on source order. Everything here is ordered
+  from most general → most specific:
+
+    core/          ←── PORTABLE across every project you'll ever build
+    │                  Copy this folder verbatim; only edit tokens.css
+    ├── tokens.css      Design tokens (colors, space, type, radius…)
+    ├── reset.css       Browser normalisation
+    ├── typography.css  Global type scale & rhythm
+    ├── layout.css      Container, grid & flow primitives
+    └── utilities.css   a11y helpers, visually-hidden, etc.
+
+    components/    ←── PROJECT-SPECIFIC (replace per project)
+    ├── header.css
+    ├── nav.css
+    ├── search.css
+    └── buttons.css
+
+    pages/         ←── PAGE-SPECIFIC sections
+    └── home.css
+
+    print.css      ←── Mostly portable; tweak selector list
+
+  Performance note on @import:
+  Browser-native CSS @import is sequential (each import blocks the next).
+  In production, use a build tool (Vite / PostCSS) to bundle these into
+  one file. During development, the DX of separate files is worth it.
+  This setup is 100% production-ready the moment you add a bundler.
+
+  Alternative — a single <link> per file in <head>:
+  Older approach; HTTP/2 multiplexing makes it viable but a bundler
+  is still faster because it removes the round-trips entirely.
+*/
+
+/* ── Core (portable) ──────────────────────────────────────────────── */
+@import "./core/tokens.css";
+@import "./core/reset.css";
+@import "./core/typography.css";
+@import "./core/layout.css";
+@import "./core/utilities.css";
+
+/* ── Components (project-specific) ───────────────────────────────── */
+@import "./components/buttons.css";
+@import "./components/header.css";
+@import "./components/nav.css";
+@import "./components/search.css";
+
+/* ── Pages ────────────────────────────────────────────────────────── */
+@import "./pages/home.css";
+
+/* ── Print (at the end so it can override anything above) ─────────── */
+@import "./print.css";

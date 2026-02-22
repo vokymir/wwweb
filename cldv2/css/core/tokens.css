@@ -1,0 +1,397 @@
+/*
+  ═══════════════════════════════════════════════════════════════════════
+  core/tokens.css  ─  Design tokens. The single source of truth.
+  ═══════════════════════════════════════════════════════════════════════
+  PORTABLE: YES — replace the VALUES, not the structure.
+  This file is the "contract" the rest of your CSS depends on.
+  ═══════════════════════════════════════════════════════════════════════
+
+  Q9 — CSS Variable naming conventions
+  ──────────────────────────────────────
+  There are several schools. None is universally correct; pick one
+  and be consistent throughout a project.
+
+  Convention A — Category + scale (what this file uses):
+    --color-brand-500, --space-4, --radius-lg
+    Pro: explicit, predictable, mirrors Tailwind's mental model
+    Con: verbose
+
+  Convention B — Semantic-only (common in design systems like Material):
+    --color-primary, --color-surface, --color-on-surface
+    Pro: describes PURPOSE, not value. Easier to retheme.
+    Con: need to memorise the system
+
+  Convention C — T-shirt sizes:
+    --space-xs, --space-sm, --space-md, --space-lg, --space-xl
+    Pro: intuitive, readable
+    Con: breaks down when you need more granularity (--space-2xs?)
+
+  Convention D — Component-scoped "private" variables (leading _):
+    --_btn-bg, --_btn-color   (used inside a component, not global)
+    Pro: shows intent — "don't use this outside this component"
+    Con: no actual enforcement; just a convention
+
+  Convention E — Functional prefix:
+    --c-primary (color), --s-4 (space), --f-display (font), --r-md (radius)
+    Pro: extremely compact, easy to scan
+    Con: cryptic for new team members
+
+  THIS FILE uses a hybrid: primitives use scale (A), semantic tokens use
+  purpose names (B). Components use private vars (D) when helpful.
+
+  ─────────────────────────────────────────────────────────────────────
+  Q10 — OKLCH color scheme
+  ─────────────────────────────────────────────────────────────────────
+  OKLCH is the modern professional color space for CSS.
+  Syntax: oklch(lightness% chroma hue)
+
+    L — Lightness:  0% = black, 100% = white
+    C — Chroma:     0 = grey, ~0.37 = maximum vivid color
+    H — Hue:        0–360° around the color wheel
+
+  WHY OKLCH OVER HSL/HEX/RGB?
+
+  1. Perceptual uniformity
+     In HSL, yellow at 50% L looks far brighter than blue at 50% L.
+     In OKLCH, equal L values look equally bright to human eyes.
+     Result: your design has consistent perceived contrast everywhere.
+
+  2. Fewer shades needed
+     Instead of defining 50/100/200/.../900 variants, define your
+     brand hue ONCE and adjust L mathematically. See the pattern below.
+
+  3. Dark mode is trivial
+     Flip L values in the dark theme. Colors remain harmonious
+     because the chroma and hue stay consistent.
+
+  4. Wider gamut
+     OKLCH can describe P3 colors (the wider gamut on modern displays)
+     that are outside sRGB. HSL cannot.
+
+  5. color-mix() integration
+     CSS color-mix() works best with perceptually uniform spaces.
+
+  The key architectural trick: define HUE as a variable.
+  Change ONE number to retheme the whole site.
+*/
+
+:root {
+  /* ═══════════════════════════════════════════════════════════════
+     HUE PALETTE — change these to retheme the entire site
+     ═══════════════════════════════════════════════════════════════
+     Klubíčko Plzeň: warm teal + amber. Inviting, natural, energetic.
+  */
+  --hue-brand:    195;   /* teal-cyan — trust, calm, nature */
+  --hue-accent:    68;   /* warm amber — energy, joy, play   */
+  --hue-neutral:  220;   /* cool blue-grey — text, borders   */
+  --hue-success:  145;   /* green                            */
+  --hue-warning:   60;   /* yellow                           */
+  --hue-error:     25;   /* orange-red                       */
+
+  /* ═══════════════════════════════════════════════════════════════
+     COLOR PRIMITIVES — raw OKLCH values keyed to the hues above
+     Only SEMANTIC TOKENS (below) should be used in components.
+     Think of primitives as the "paint colours" and semantics as
+     the "room names" (kitchen wall = --color-surface, not --teal-90).
+     ═══════════════════════════════════════════════════════════════ */
+
+  /* Brand scale (teal) */
+  --color-brand-95: oklch(95% 0.04 var(--hue-brand));
+  --color-brand-90: oklch(90% 0.07 var(--hue-brand));
+  --color-brand-50: oklch(52% 0.17 var(--hue-brand));
+  --color-brand-40: oklch(42% 0.15 var(--hue-brand));
+  --color-brand-25: oklch(25% 0.10 var(--hue-brand));
+
+  /* Accent scale (amber) */
+  --color-accent-90: oklch(90% 0.08 var(--hue-accent));
+  --color-accent-75: oklch(75% 0.18 var(--hue-accent));
+  --color-accent-60: oklch(60% 0.20 var(--hue-accent));
+  --color-accent-45: oklch(45% 0.16 var(--hue-accent));
+
+  /* Neutral scale — slightly warm grey */
+  --color-neutral-98: oklch(98% 0.008 var(--hue-neutral));
+  --color-neutral-95: oklch(95% 0.012 var(--hue-neutral));
+  --color-neutral-90: oklch(90% 0.015 var(--hue-neutral));
+  --color-neutral-70: oklch(70% 0.020 var(--hue-neutral));
+  --color-neutral-50: oklch(50% 0.025 var(--hue-neutral));
+  --color-neutral-30: oklch(30% 0.025 var(--hue-neutral));
+  --color-neutral-15: oklch(15% 0.020 var(--hue-neutral));
+  --color-neutral-08: oklch(8%  0.015 var(--hue-neutral));
+
+  /* Pure white / black */
+  --color-white: oklch(100% 0 0);
+  --color-black: oklch(0%   0 0);
+
+  /* ═══════════════════════════════════════════════════════════════
+     SEMANTIC COLOR TOKENS  ← ONLY USE THESE IN COMPONENTS
+     ═══════════════════════════════════════════════════════════════
+     These express INTENT, not implementation.
+     In dark mode, we only redefine these — primitives don't change.
+
+     "on-X" convention (from Material Design): the color to use ON
+     top of X. --color-on-primary is text ON a primary background.
+  */
+
+  /* Backgrounds */
+  --color-surface:          var(--color-neutral-98);
+  --color-surface-raised:   var(--color-white);
+  --color-surface-muted:    var(--color-neutral-95);
+  --color-surface-inset:    var(--color-neutral-90);
+
+  /* Text */
+  --color-text:             var(--color-neutral-15);
+  --color-text-muted:       var(--color-neutral-50);
+  --color-text-subtle:      var(--color-neutral-70);
+  --color-text-inverse:     var(--color-white);
+
+  /* Borders */
+  --color-border:           var(--color-neutral-90);
+  --color-border-strong:    var(--color-neutral-70);
+
+  /* Primary (brand) */
+  --color-primary:          var(--color-brand-50);
+  --color-primary-hover:    var(--color-brand-40);
+  --color-primary-subtle:   var(--color-brand-95);
+  --color-on-primary:       var(--color-white);
+
+  /* Accent */
+  --color-accent:           var(--color-accent-75);
+  --color-accent-hover:     var(--color-accent-60);
+  --color-accent-subtle:    var(--color-accent-90);
+  --color-on-accent:        var(--color-neutral-15);
+
+  /* ─────────────────────────────────────────────────────────────
+     Header-specific overrides
+     Keeps header theming isolated — swap these for a dark header
+     without touching nav or button styles.
+  ─────────────────────────────────────────────────────────────── */
+  --header-bg:              oklch(100% 0 0 / 0.92);  /* semi-transparent */
+  --header-border:          var(--color-border);
+  --header-height:          4.5rem;
+  --header-blur:            blur(14px);
+
+  /* ═══════════════════════════════════════════════════════════════
+     SPACING — 4px base grid
+     ═══════════════════════════════════════════════════════════════
+     Every value is a multiple of 0.25rem (4px at default font size).
+     This creates unconscious visual rhythm.
+  */
+  --space-1:   0.25rem;   /*  4px */
+  --space-2:   0.5rem;    /*  8px */
+  --space-3:   0.75rem;   /* 12px */
+  --space-4:   1rem;      /* 16px */
+  --space-5:   1.25rem;   /* 20px */
+  --space-6:   1.5rem;    /* 24px */
+  --space-8:   2rem;      /* 32px */
+  --space-10:  2.5rem;    /* 40px */
+  --space-12:  3rem;      /* 48px */
+  --space-16:  4rem;      /* 64px */
+  --space-20:  5rem;      /* 80px */
+  --space-24:  6rem;      /* 96px */
+
+  /* ═══════════════════════════════════════════════════════════════
+     TYPOGRAPHY
+     ═══════════════════════════════════════════════════════════════ */
+  --font-display: 'Baloo 2', system-ui, sans-serif;  /* playful, great diacritics */
+  --font-body:    'Nunito', system-ui, sans-serif;   /* rounded, readable for kids */
+  --font-mono:    'Fira Code', 'Courier New', monospace;
+
+  /* Fluid type scale using clamp()
+     Pattern: clamp(min-at-320px, fluid-midpoint, max-at-1280px)
+     The fluid midpoint uses vw so it scales smoothly between breakpoints.
+
+     Q5 — Fluid font sizes
+     You could use a CSS tool like utopia.fyi to generate these.
+     The math: font grows 1px per 10px of viewport width (roughly).
+  */
+  --text-xs:   clamp(0.70rem, 0.68rem + 0.10vw, 0.75rem);
+  --text-sm:   clamp(0.85rem, 0.82rem + 0.16vw, 0.938rem);
+  --text-base: clamp(1rem,    0.97rem + 0.18vw, 1.125rem);
+  --text-md:   clamp(1.125rem,1.07rem + 0.28vw, 1.313rem);
+  --text-lg:   clamp(1.266rem,1.19rem + 0.38vw, 1.5rem);
+  --text-xl:   clamp(1.424rem,1.33rem + 0.47vw, 1.75rem);
+  --text-2xl:  clamp(1.602rem,1.47rem + 0.65vw, 2.063rem);
+  --text-3xl:  clamp(1.802rem,1.62rem + 0.91vw, 2.438rem);
+  --text-4xl:  clamp(2.027rem,1.77rem + 1.28vw, 2.813rem);
+  --text-5xl:  clamp(2.281rem,1.90rem + 1.90vw, 3.375rem);
+
+  /* Line heights */
+  --leading-tight:   1.1;
+  --leading-snug:    1.3;
+  --leading-normal:  1.6;
+  --leading-relaxed: 1.75;
+
+  /* Font weights */
+  --weight-regular:   400;
+  --weight-medium:    500;
+  --weight-semibold:  600;
+  --weight-bold:      700;
+  --weight-extrabold: 800;
+
+  /* Letter spacing */
+  --tracking-tight:  -0.025em;
+  --tracking-normal:  0em;
+  --tracking-wide:    0.06em;
+  --tracking-widest:  0.12em;
+
+  /* ═══════════════════════════════════════════════════════════════
+     BORDER RADIUS
+     ═══════════════════════════════════════════════════════════════ */
+  --radius-sm:   0.25rem;
+  --radius-md:   0.5rem;
+  --radius-lg:   0.875rem;
+  --radius-xl:   1.25rem;
+  --radius-2xl:  2rem;
+  --radius-full: 9999px;
+
+  /* ═══════════════════════════════════════════════════════════════
+     SHADOWS  —  keyed to the brand hue for colour coherence
+     ═══════════════════════════════════════════════════════════════ */
+  --shadow-sm:     0 1px 2px oklch(0% 0 0 / 0.05);
+  --shadow-md:     0 4px 12px -2px oklch(20% 0.05 var(--hue-brand) / 0.10);
+  --shadow-lg:     0 16px 40px -8px oklch(20% 0.05 var(--hue-brand) / 0.14);
+  --shadow-header: 0 1px 0 var(--color-border), 0 2px 12px -4px oklch(20% 0.05 var(--hue-brand) / 0.08);
+
+  /* ═══════════════════════════════════════════════════════════════
+     TRANSITIONS
+     ═══════════════════════════════════════════════════════════════ */
+  --duration-fast:   110ms;
+  --duration-base:   200ms;
+  --duration-slow:   360ms;
+  --duration-slower: 520ms;
+
+  --ease-out:    cubic-bezier(0.0,  0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4,  0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);  /* slight overshoot */
+
+  /* ═══════════════════════════════════════════════════════════════
+     Z-INDEX SCALE — named, not magic numbers
+     ═══════════════════════════════════════════════════════════════ */
+  --z-below:    -1;
+  --z-base:      0;
+  --z-raised:    10;
+  --z-sticky:    100;
+  --z-dropdown:  200;
+  --z-header:    300;
+  --z-modal:     400;
+  --z-toast:     500;
+  --z-tooltip:   600;
+
+  /* ═══════════════════════════════════════════════════════════════
+     LAYOUT
+     ═══════════════════════════════════════════════════════════════ */
+  --max-w-content: 75rem;   /* 1200px */
+  --max-w-prose:   42rem;   /* ~65 chars per line — ideal for reading */
+  --gutter:        clamp(var(--space-4), 4vw, var(--space-10));
+  /* Fluid gutter — no padding jumps at breakpoints */
+
+  /* ═══════════════════════════════════════════════════════════════
+     FOCUS RING — global token, single override to restyle everywhere
+     ═══════════════════════════════════════════════════════════════ */
+  --focus-color:   var(--color-accent);
+  --focus-width:   3px;
+  --focus-offset:  3px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   Q11 — DARK MODE
+   ═══════════════════════════════════════════════════════════════════
+   Two-layer approach — auto (from OS) + manual toggle (from JS):
+
+   Layer 1 — OS preference (zero JS):
+     @media (prefers-color-scheme: dark) applies when the user's OS
+     is in dark mode. This works with ZERO JavaScript.
+
+   Layer 2 — Manual toggle (minimal JS):
+     A button sets data-theme="dark" / data-theme="light" on <html>.
+     The :not([data-theme]) selector means: only apply the OS preference
+     when the user hasn't manually overridden it.
+
+   The JS needed: ONE event listener on a theme-toggle button that does:
+     const root = document.documentElement;
+     const current = root.dataset.theme ?? (OS-prefers-dark ? 'dark' : 'light');
+     root.dataset.theme = current === 'dark' ? 'light' : 'dark';
+     localStorage.setItem('theme', root.dataset.theme);
+
+   On page load (in <head> to prevent flash):
+     const saved = localStorage.getItem('theme');
+     if (saved) document.documentElement.dataset.theme = saved;
+
+   Trick with :has() — CSS-only toggle:
+     If you put a checkbox with id="theme-toggle" in the HTML, you CAN
+     do this entirely without JS using:
+       html:has(#theme-toggle:checked) { ... dark tokens ... }
+     But this stores NO state (resets on page load), and the checkbox
+     needs to be somewhere in the DOM. Use JS for real toggle support.
+
+   HOW OKLCH MAKES DARK MODE TRIVIAL:
+     Light: high L, low C for backgrounds; low L, mid C for text
+     Dark:  low L, low C for backgrounds; high L, mid C for text
+     Because OKLCH is perceptually uniform, you just invert L values.
+     Colors remain harmonious because C (chroma) and H (hue) don't change.
+*/
+
+/* Auto dark mode (OS-level) — only when no manual override */
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) {
+    color-scheme: dark;
+    --color-surface:        oklch(14% 0.01 var(--hue-neutral));
+    --color-surface-raised: oklch(18% 0.01 var(--hue-neutral));
+    --color-surface-muted:  oklch(20% 0.015 var(--hue-neutral));
+    --color-surface-inset:  oklch(24% 0.02 var(--hue-neutral));
+
+    --color-text:           oklch(93% 0.01 var(--hue-neutral));
+    --color-text-muted:     oklch(65% 0.015 var(--hue-neutral));
+    --color-text-subtle:    oklch(45% 0.015 var(--hue-neutral));
+
+    --color-border:         oklch(28% 0.025 var(--hue-neutral));
+    --color-border-strong:  oklch(45% 0.025 var(--hue-neutral));
+
+    --color-primary:        var(--color-brand-90);
+    --color-primary-hover:  oklch(95% 0.05 var(--hue-brand));
+    --color-on-primary:     var(--color-brand-25);
+
+    --color-accent:         var(--color-accent-60);
+    --color-accent-hover:   var(--color-accent-75);
+    --color-on-accent:      oklch(10% 0 0);
+
+    --header-bg:            oklch(14% 0.01 var(--hue-neutral) / 0.92);
+    --header-border:        var(--color-border);
+
+    --shadow-sm:   0 1px 2px oklch(0% 0 0 / 0.25);
+    --shadow-md:   0 4px 12px -2px oklch(0% 0 0 / 0.35);
+    --shadow-lg:   0 16px 40px -8px oklch(0% 0 0 / 0.45);
+  }
+}
+
+/* Manual dark override — user explicitly chose dark */
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --color-surface:        oklch(14% 0.01 var(--hue-neutral));
+  --color-surface-raised: oklch(18% 0.01 var(--hue-neutral));
+  --color-surface-muted:  oklch(20% 0.015 var(--hue-neutral));
+  --color-surface-inset:  oklch(24% 0.02 var(--hue-neutral));
+
+  --color-text:           oklch(93% 0.01 var(--hue-neutral));
+  --color-text-muted:     oklch(65% 0.015 var(--hue-neutral));
+  --color-text-subtle:    oklch(45% 0.015 var(--hue-neutral));
+
+  --color-border:         oklch(28% 0.025 var(--hue-neutral));
+  --color-border-strong:  oklch(45% 0.025 var(--hue-neutral));
+
+  --color-primary:        var(--color-brand-90);
+  --color-primary-hover:  oklch(95% 0.05 var(--hue-brand));
+  --color-on-primary:     var(--color-brand-25);
+
+  --color-accent:         var(--color-accent-60);
+  --color-accent-hover:   var(--color-accent-75);
+  --color-on-accent:      oklch(10% 0 0);
+
+  --header-bg:            oklch(14% 0.01 var(--hue-neutral) / 0.92);
+  --header-border:        var(--color-border);
+
+  --shadow-sm:   0 1px 2px oklch(0% 0 0 / 0.25);
+  --shadow-md:   0 4px 12px -2px oklch(0% 0 0 / 0.35);
+  --shadow-lg:   0 16px 40px -8px oklch(0% 0 0 / 0.45);
+}

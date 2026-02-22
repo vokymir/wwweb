@@ -1,0 +1,313 @@
+/*
+  ═══════════════════════════════════════════════════════════════════════
+  components/nav.css  ─  Primary navigation & dropdown menus
+  ═══════════════════════════════════════════════════════════════════════
+
+  Q15 — Responsiveness: mobile nav as a side panel
+  ─────────────────────────────────────────────────────────────────────
+  Desktop: horizontal nav in the header flex row.
+  Mobile: full-height side panel, slides in from the right.
+    - position: fixed covers the whole screen (below the header)
+    - transform: translateX(100%) hides it off-screen
+    - JS toggles aria-expanded on hamburger → CSS uses that as hook
+    - .site-nav[aria-hidden="false"] reveals the panel
+
+  Q16 — CTA inside mobile panel
+  ─────────────────────────────────────────────────────────────────────
+  The nav panel contains a .site-nav__cta element. It's hidden on
+  desktop (the CTA lives in .header-actions__cta instead). On mobile,
+  the header CTA is hidden and the nav CTA is shown.
+
+  Both CTAs link to the same URL — this is intentional duplication.
+  Screen readers won't notice because only one is visible at a time.
+*/
+
+/* ─── BLOCK ───────────────────────────────────────────────────────── */
+.site-nav {
+  /* Desktop: inline flex in header row */
+}
+
+/* ─── NAV LIST ────────────────────────────────────────────────────── */
+.site-nav__list {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* ─── NAV ITEM ────────────────────────────────────────────────────── */
+.site-nav__item {
+  position: relative;
+}
+
+/* ─── NAV LINK ────────────────────────────────────────────────────── */
+/*
+  Shared by: <a class="site-nav__link"> and
+             <summary class="site-nav__link site-nav__toggle">
+  A <summary> is display:list-item by default in some browsers —
+  we set display: inline-flex explicitly.
+*/
+.site-nav__link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-wide);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+
+  white-space: nowrap;
+  transition:
+    color            var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
+}
+
+.site-nav__link:hover {
+  color: var(--color-text);
+  background-color: var(--color-surface-muted);
+}
+
+.site-nav__link[aria-current="page"] {
+  color: var(--color-primary);
+  background-color: var(--color-primary-subtle);
+}
+
+.site-nav__link:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 var(--focus-width) var(--focus-color);
+  color: var(--color-text);
+}
+
+/* ─── DROPDOWN TOGGLE (summary element) ──────────────────────────── */
+.site-nav__toggle {
+  /* Inherits .site-nav__link styles above */
+  user-select: none;
+}
+
+/* Chevron arrow via ::after pseudo-element */
+.site-nav__toggle::after {
+  content: '';
+  display: inline-block;
+  width: 0.4em;
+  height: 0.4em;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg) translateY(-0.1em);
+  flex-shrink: 0;
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+/* Rotate chevron when dropdown is open */
+details[open] > .site-nav__toggle::after {
+  transform: rotate(-135deg) translateY(0.1em);
+}
+
+/* ─── DROPDOWN MENU PANEL ─────────────────────────────────────────── */
+.site-nav__dropdown {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  left: 50%;
+
+  min-width: 13rem;
+  padding: var(--space-2);
+
+  background-color: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+
+  /* Hidden state — invisible + unreachable */
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateX(-50%) translateY(calc(-1 * var(--space-2)));
+
+  /*
+    We animate opacity + transform + visibility together.
+    visibility must transition too so it doesn't snap — it delays
+    until the opacity has finished.
+    Use the SAME duration for both so they finish together.
+  */
+  transition:
+    opacity    var(--duration-base) var(--ease-out),
+    transform  var(--duration-base) var(--ease-out),
+    visibility var(--duration-base) step-end;
+    /*
+      step-end: visibility stays visible until end of the transition,
+      then snaps to hidden. This prevents the menu from becoming
+      unreachable mid-animation when closing.
+    */
+}
+
+/* Visible state — when <details> has [open] attribute */
+details[open] > .site-nav__dropdown {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+  transition:
+    opacity    var(--duration-base) var(--ease-out),
+    transform  var(--duration-base) var(--ease-out),
+    visibility var(--duration-base) step-start;
+    /* step-start: visibility becomes visible IMMEDIATELY on open */
+}
+
+/* ─── DROPDOWN LINKS ──────────────────────────────────────────────── */
+.site-nav__sub-link {
+  display: block;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--color-text-muted);
+
+  transition:
+    color            var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
+}
+
+.site-nav__sub-link:hover {
+  color: var(--color-text);
+  background-color: var(--color-surface-muted);
+}
+
+.site-nav__sub-link:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 var(--focus-width) var(--focus-color);
+  color: var(--color-text);
+}
+
+/* ─── CTA inside nav panel (mobile only) ────────────────────────── */
+.site-nav__cta {
+  display: none;  /* hidden on desktop */
+  padding: var(--space-4) var(--space-4) var(--space-6);
+  margin-top: auto;
+}
+
+.site-nav__cta .btn {
+  width: 100%;
+  justify-content: center;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   MOBILE NAV PANEL
+   ═══════════════════════════════════════════════════════════════════
+   Q15 — Responsive: the nav becomes a slide-in side panel on mobile.
+   The hamburger's aria-expanded="true/false" drives the CSS state.
+*/
+@media (max-width: 768px) {
+
+  .site-nav {
+    /* Full-height panel, slides from the right */
+    position: fixed;
+    top: var(--header-height);
+    right: 0;
+    bottom: 0;
+    width: min(85vw, 22rem);
+
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    padding-block: var(--space-4);
+
+    background-color: var(--color-surface-raised);
+    border-left: 1px solid var(--color-border);
+    box-shadow: var(--shadow-lg);
+    z-index: calc(var(--z-header) - 1);
+
+    /* Hidden off-screen to the right */
+    transform: translateX(100%);
+    visibility: hidden;
+    transition:
+      transform    var(--duration-slow) var(--ease-out),
+      visibility   var(--duration-slow) step-end;
+  }
+
+  /* JS sets aria-hidden="false" on .site-nav when hamburger is clicked */
+  .site-nav[aria-hidden="false"] {
+    transform: translateX(0);
+    visibility: visible;
+    transition:
+      transform  var(--duration-slow) var(--ease-out),
+      visibility var(--duration-slow) step-start;
+  }
+
+  /* Overlay behind the panel */
+  .site-nav::before {
+    content: '';
+    position: fixed;
+    inset: var(--header-height) 0 0 0;
+    background: oklch(0% 0 0 / 0.4);
+    z-index: var(--z-below);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--duration-slow) var(--ease-out);
+  }
+  .site-nav[aria-hidden="false"]::before {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Mobile nav list: vertical, full-width */
+  .site-nav__list {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-1);
+    padding-inline: var(--space-3);
+    flex: 1;
+  }
+
+  .site-nav__link {
+    padding: var(--space-4);
+    font-size: var(--text-base);
+    width: 100%;
+    border-radius: var(--radius-lg);
+  }
+
+  /* Mobile dropdowns: inline (not floating) */
+  .site-nav__dropdown {
+    position: static;
+    transform: none;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    box-shadow: none;
+    border: none;
+    background-color: var(--color-surface-muted);
+    border-radius: var(--radius-md);
+    margin-top: var(--space-1);
+    padding: var(--space-2);
+
+    /* Use max-height for mobile inline expand (opacity trick won't work inline) */
+    max-height: 0;
+    overflow: hidden;
+    padding: 0;
+    transition:
+      max-height   var(--duration-slow) var(--ease-out),
+      padding      var(--duration-base) var(--ease-out);
+  }
+
+  details[open] > .site-nav__dropdown {
+    max-height: 24rem;
+    padding: var(--space-2);
+    transform: none;
+  }
+
+  .site-nav__sub-link {
+    padding: var(--space-3) var(--space-4);
+    font-size: var(--text-base);
+  }
+
+  /* Show CTA inside mobile nav panel */
+  .site-nav__cta {
+    display: block;
+    border-top: 1px solid var(--color-border);
+  }
+}

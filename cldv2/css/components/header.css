@@ -1,0 +1,311 @@
+/*
+  ═══════════════════════════════════════════════════════════════════════
+  components/header.css  ─  Site header, logo, hamburger
+  ═══════════════════════════════════════════════════════════════════════
+  PROJECT-SPECIFIC — but structured so only token values need changing.
+  ═══════════════════════════════════════════════════════════════════════
+
+  Q3 — BEM (Block Element Modifier) naming convention
+  ─────────────────────────────────────────────────────────────────────
+  Block:    .site-header          — independent component
+  Element:  .site-header__inner  — child of the block (double underscore)
+  Modifier: .site-header--dark   — variation of block (double dash)
+
+  Rules:
+  1. Elements belong to the block, not to other elements.
+     WRONG: .site-header__inner__logo
+     RIGHT: .site-header__logo (a new element of the block)
+  2. Modifiers modify behaviour or appearance.
+     WRONG: .site-header__inner-wide
+     RIGHT: .site-header__inner--wide
+  3. Never nest BEM classes: .site-header .site-header__inner
+     Just use .site-header__inner — its name implies it's inside header.
+
+  Q5 — Container queries on the header
+  ─────────────────────────────────────────────────────────────────────
+  The .site-header__inner gets container-type: inline-size.
+  This lets child components query the HEADER'S width,
+  not the viewport. Since the header is always viewport-wide (minus
+  scrollbar), this is equivalent to a media query here — but the
+  TECHNIQUE is correct and shows how components should self-adapt.
+
+  Q16 — Logo name dropping with CSS only
+  ─────────────────────────────────────────────────────────────────────
+  @container header-inner (max-width: 400px) hides the logo text.
+  This is pure CSS — no JS needed. When the container (the header)
+  is narrower than 400px, the text disappears; only the icon remains.
+
+  Q17 — Desktop-first
+  ─────────────────────────────────────────────────────────────────────
+  Base styles = desktop. Media/container queries = narrowing adjustments.
+  Keep override selectors minimal — if there are many, rethink the base.
+*/
+
+/* ─── BLOCK ───────────────────────────────────────────────────────── */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
+
+  width: 100%;
+  height: var(--header-height);
+
+  background-color: var(--header-bg);
+  backdrop-filter: var(--header-blur);
+  -webkit-backdrop-filter: var(--header-blur);
+
+  border-bottom: 1px solid var(--header-border);
+  box-shadow: var(--shadow-header);
+
+  transition:
+    background-color var(--duration-base) var(--ease-out),
+    border-color     var(--duration-base) var(--ease-out);
+}
+
+/* ─── INNER WRAPPER ───────────────────────────────────────────────── */
+.site-header__inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+
+  height: 100%;
+  max-width: var(--max-w-content);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+
+  /*
+    Container context. Children can write @container header-inner (max-width: X).
+    container-type: inline-size = tracks the container's WIDTH only.
+    This is the correct choice here (we don't care about height changes).
+  */
+  container-type: inline-size;
+  container-name: header-inner;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   LOGO
+   ═══════════════════════════════════════════════════════════════════
+
+   Q6 — Inline SVG: styling correctly
+   ─────────────────────────────────────────────────────────────────
+   When an SVG is inline in the HTML (not <img src="logo.svg">),
+   you can style it with CSS directly:
+
+   1. currentColor: any fill/stroke set to "currentColor" inherits
+      the CSS color property from the nearest ancestor. This is the
+      preferred approach — the SVG recolours itself automatically
+      in dark mode, on hover, inside coloured buttons, etc.
+
+   2. Targeting SVG internals: SVG child elements (path, circle, rect)
+      can be given class names and styled from CSS:
+        .site-logo__symbol-path { fill: var(--color-accent); }
+
+   3. width/height: Set these in CSS, NOT on the SVG element's
+      width/height attributes. The viewBox attribute defines the
+      coordinate system; CSS controls the rendered size.
+      If you set width/height in the SVG markup, you must also
+      override them in CSS if you ever want to resize responsively.
+
+   4. SVG inside <figure>:
+      <figure> is for self-contained content that could be captioned
+      and extracted from context without losing meaning — illustrations,
+      code blocks, charts, photos. A UI logo inside a nav link is
+      NOT self-contained content; it's a decorative UI element.
+      → Do NOT use <figure> for the header logo.
+      → DO use <figure> for: article illustrations, data charts,
+        code snippets with a caption, pull-quote images.
+      Example:
+        <figure>
+          <img src="map.png" alt="Plzeň city centre">
+          <figcaption>Centrum Plzně — zdroj: Mapy.cz</figcaption>
+        </figure>
+*/
+.site-logo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+
+  color: var(--color-text);
+  text-decoration: none;
+
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.site-logo:hover    { opacity: 0.72; }
+.site-logo:focus-visible {
+  outline: none;
+  border-radius: var(--radius-md);
+  box-shadow: 0 0 0 var(--focus-width) var(--focus-color);
+}
+
+/* The SVG icon — sized via CSS, NOT via SVG attributes */
+.site-logo__icon {
+  /* No explicit width/height in CSS needed — let the SVG's
+     viewBox + the container control size.
+     We set height and let width be auto (square viewBox = same). */
+  height: 2.25rem;
+  width: auto;
+  flex-shrink: 0;
+  color: var(--color-primary);  /* currentColor in SVG inherits this */
+}
+
+/* Individual SVG paths can be styled if they have classes */
+.site-logo__icon-dot {
+  fill: var(--color-accent);  /* accent colour on part of the logo */
+}
+
+.site-logo__name {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-extrabold);
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-text);
+  white-space: nowrap;
+  line-height: 1;
+}
+
+/*
+  Q16 — Drop logo text when container is too narrow (pure CSS)
+  Container query: when the header inner is ≤ 420px, hide the name.
+  Only the icon remains, saving ~100px of horizontal space.
+*/
+@container header-inner (max-width: 420px) {
+  .site-logo__name {
+    display: none;
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   HEADER ACTIONS (right-side: search button + CTA + hamburger)
+   ═══════════════════════════════════════════════════════════════════ */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-inline-start: auto;  /* pushes this group to the far right */
+  flex-shrink: 0;
+}
+
+/* CTA visible on desktop only — on mobile it lives inside the nav panel */
+.header-actions__cta {
+  /* Shown by default (desktop) */
+}
+
+@media (max-width: 768px) {
+  .header-actions__cta {
+    display: none;
+  }
+}
+
+/*
+  Q7 — Search icon button (the SVG trigger for the search dialog)
+  Styled as a circular icon button. It triggers the <dialog> via JS.
+*/
+.header-actions__search {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-full);
+
+  color: var(--color-text-muted);
+
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color            var(--duration-fast) var(--ease-out),
+    transform        var(--duration-fast) var(--ease-spring);
+}
+
+.header-actions__search:hover {
+  background-color: var(--color-surface-muted);
+  color: var(--color-text);
+}
+
+.header-actions__search:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 var(--focus-width) var(--focus-color);
+}
+
+.header-actions__search:active {
+  transform: scale(0.93);
+}
+
+.header-actions__search-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  /* stroke="currentColor" in the SVG inherits this element's color */
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   HAMBURGER BUTTON
+   ═══════════════════════════════════════════════════════════════════
+   Hidden on desktop. Shown on mobile via media query.
+   Three bars animate to an × when aria-expanded="true"
+   (set by JS on click).
+
+   Q15/Q17 — responsiveness: hamburger only appears when needed.
+   We use max-width: 768px (desktop-first: hidden by default, shown
+   when viewport is ≤ 768px).
+*/
+.hamburger {
+  display: none;   /* hidden on desktop */
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-md);
+
+  color: var(--color-text);
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.hamburger:hover    { background-color: var(--color-surface-muted); }
+.hamburger:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 var(--focus-width) var(--focus-color);
+}
+
+.hamburger__bar {
+  display: block;
+  width: 1.25rem;
+  height: 2px;
+  background-color: currentColor;
+  border-radius: var(--radius-full);
+  pointer-events: none;
+
+  transition:
+    transform  var(--duration-base) var(--ease-in-out),
+    opacity    var(--duration-fast) var(--ease-out),
+    width      var(--duration-base) var(--ease-in-out);
+}
+
+/* ── Animate to × when open ────────────────────────────────────────
+   JS sets aria-expanded="true" on the hamburger button.
+   We use [aria-expanded="true"] as the CSS hook — no extra classes,
+   no data-attributes. The semantic state IS the style trigger.
+*/
+.hamburger[aria-expanded="true"] .hamburger__bar:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+.hamburger[aria-expanded="true"] .hamburger__bar:nth-child(2) {
+  opacity: 0;
+  width: 0;
+}
+.hamburger[aria-expanded="true"] .hamburger__bar:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+/* Show hamburger on mobile */
+@media (max-width: 768px) {
+  .hamburger {
+    display: flex;
+  }
+}

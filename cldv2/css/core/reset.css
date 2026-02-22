@@ -1,0 +1,114 @@
+/*
+  ═══════════════════════════════════════════════════════════════════════
+  core/reset.css  ─  Browser normalisation
+  ═══════════════════════════════════════════════════════════════════════
+  PORTABLE: YES — copy as-is to every project.
+  ═══════════════════════════════════════════════════════════════════════
+*/
+
+/* Universal box model fix — the single most impactful CSS one-liner */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  /*
+    scroll-behavior: smooth — animates anchor jumps.
+    We disable this for prefers-reduced-motion users in tokens.css.
+  */
+  scroll-behavior: smooth;
+
+  /*
+    100% preserves the user's browser font-size preference.
+    NEVER use 62.5% as a "rem hack" — it breaks zoom accessibility.
+  */
+  font-size: 100%;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  hanging-punctuation: first last;
+
+  /*
+    color-scheme hints to the browser which UI elements (scrollbars,
+    form controls, etc.) should match the theme.
+  */
+  color-scheme: light dark;
+}
+
+body {
+  min-height: 100dvh;  /* dvh = dynamic viewport height (handles mobile chrome bars) */
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-normal);
+  color: var(--color-text);
+  background-color: var(--color-surface);
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Remove default list styles — we add back role="list" in HTML where needed */
+ul, ol { list-style: none; }
+
+/* Links inherit colour; we add specific styles in components */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Media that shouldn't overflow containers */
+img, picture, video, canvas, svg {
+  display: block;
+  max-width: 100%;
+}
+
+/* Form elements should inherit fonts (browser default is inconsistent) */
+input, button, textarea, select { font: inherit; }
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  text-wrap: balance;  /* prevents widowed last words */
+  color: var(--color-text);
+}
+
+/* Prevent orphans in paragraphs */
+p { text-wrap: pretty; }
+
+/* Remove button chrome */
+button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+}
+
+/* Remove summary triangle/marker universally */
+details > summary {
+  list-style: none;
+  cursor: pointer;
+}
+details > summary::-webkit-details-marker { display: none; }
+
+/* Focus baseline — see utilities.css for opinionated styles */
+:focus { outline: var(--focus-width) solid var(--focus-color); }
+:focus:not(:focus-visible) { outline: none; }
+:focus-visible {
+  outline: var(--focus-width) solid var(--focus-color);
+  outline-offset: var(--focus-offset);
+}
+
+/* Respect reduced motion — global override */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration:       0.01ms !important;
+    animation-iteration-count: 1     !important;
+    transition-duration:      0.01ms !important;
+  }
+}

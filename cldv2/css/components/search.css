@@ -1,0 +1,285 @@
+/*
+  ═══════════════════════════════════════════════════════════════════════
+  components/search.css  ─  Search modal dialog
+  ═══════════════════════════════════════════════════════════════════════
+
+  Q7 — Search: blur/dim the page, centered form
+  ─────────────────────────────────────────────────────────────────────
+  ELEMENT: <dialog> — the correct semantic element for a modal overlay.
+
+  Why <dialog> instead of <details> for search?
+  ┌─────────────────────────────────────────────────────────────────┐
+  │ <details>            │ <dialog>                                  │
+  ├─────────────────────────────────────────────────────────────────┤
+  │ Disclosure widget    │ Modal/overlay/dialog                      │
+  │ Inline or floating   │ Appears above ALL other content           │
+  │ No focus trap        │ Focus is TRAPPED inside (native browser)  │
+  │ No backdrop          │ ::backdrop pseudo-element for overlay     │
+  │ Escape: closes by JS │ Escape: closes NATIVELY                  │
+  │ No ARIA role needed  │ Implicit role="dialog"                    │
+  └─────────────────────────────────────────────────────────────────┘
+
+  <dialog> gives us:
+  1. Native focus trap (no JS needed for this critical a11y feature)
+  2. ::backdrop pseudo-element — can be styled with CSS including
+     backdrop-filter: blur()
+  3. Escape key closes it natively
+  4. Implicit role="dialog" announced to screen readers
+  5. Returns focus to the trigger element on close (native behavior)
+
+  JS needed: dialog.showModal() and dialog.close() — that's literally it.
+  Everything else (backdrop, escape, focus trap, aria) is NATIVE.
+
+  ─────────────────────────────────────────────────────────────────────
+  ANIMATION: @starting-style (cutting-edge CSS)
+  ─────────────────────────────────────────────────────────────────────
+  Historically, animating elements FROM display:none was impossible —
+  you couldn't transition a property change FROM nothing.
+
+  @starting-style defines the initial state BEFORE an element appears.
+  The browser then transitions FROM that state to the normal state.
+  This enables smooth enter animations for dialogs, popovers, etc.
+
+  Support: Chrome 117+, Safari 17.5+, Firefox 129+ (check caniuse.com).
+  Fallback: without @starting-style, the dialog still works — just
+  appears instantly. Graceful degradation.
+
+  For the EXIT animation (when closing), we use a short CSS animation
+  on [closing] attribute (set by JS before calling .close()).
+*/
+/* ─────────────────────────────────────────────────────────────────────
+   BACKDROP — the dim/blur overlay covering the whole page
+   ─────────────────────────────────────────────────────────────────────
+   dialog::backdrop is a pseudo-element that appears behind the dialog
+   but above the rest of the page. Only available on <dialog> elements.
+
+   This is what creates the full-page blur effect without any wrapper
+   divs or position:fixed overlays in your HTML.
+*/
+.search-dialog::backdrop {
+  background-color: oklch(10% 0.03 var(--hue-brand) / 0.55);
+  backdrop-filter: blur(6px) saturate(0.8);
+  -webkit-backdrop-filter: blur(6px) saturate(0.8);
+
+  transition:
+    background-color var(--duration-slow) var(--ease-out),
+    backdrop-filter  var(--duration-slow) var(--ease-out);
+}
+
+/* Backdrop enter animation */
+@starting-style {
+  .search-dialog[open]::backdrop {
+    background-color: oklch(10% 0.03 var(--hue-brand) / 0);
+    backdrop-filter: blur(0px);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   DIALOG CONTAINER
+   ─────────────────────────────────────────────────────────────────────
+   We position it fixed, centred on screen.
+   Note: <dialog> is position:absolute by default (relative to viewport
+   when opened with showModal()). We override with position:fixed
+   and centering for precise control.
+*/
+.search-dialog {
+  position: fixed;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+
+  width: min(90vw, 42rem);
+  padding: 0;
+  margin: 0;
+
+  background-color: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+
+  /* Remove default dialog styles */
+  outline: none;
+
+  /* Normal (visible) state */
+  opacity: 1;
+  scale: 1;
+
+  transition:
+    opacity   var(--duration-base) var(--ease-out),
+    scale     var(--duration-base) var(--ease-spring),
+    transform var(--duration-base) var(--ease-out),
+    display   var(--duration-base) allow-discrete;
+    /*
+      allow-discrete: required for transitioning display property
+      (part of the new CSS transitions spec for appearing/disappearing elements)
+    */
+}
+
+/* Enter animation (from hidden → visible) */
+@starting-style {
+  .search-dialog[open] {
+    opacity: 0;
+    scale: 0.95;
+  }
+}
+
+/* Exit animation (visible → hidden) — triggered by [data-closing] set in JS */
+.search-dialog[data-closing] {
+  opacity: 0;
+  scale: 0.95;
+  transition-timing-function: var(--ease-in);
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   DIALOG INNER LAYOUT
+─────────────────────────────────────────────────────────────────────── */
+.search-dialog__inner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-6);
+}
+
+/* ─── Header row: title + close button ────────────────────────────── */
+.search-dialog__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.search-dialog__title {
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+  font-weight: var(--weight-bold);
+  color: var(--color-text);
+}
+
+.search-dialog__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-full);
+  color: var(--color-text-muted);
+  font-size: var(--text-lg);
+  line-height: 1;
+  flex-shrink: 0;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color            var(--duration-fast) var(--ease-out);
+}
+
+.search-dialog__close:hover {
+  background-color: var(--color-surface-muted);
+  color: var(--color-text);
+}
+
+.search-dialog__close:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 var(--focus-width) var(--focus-color);
+}
+
+/* ─── Search form ─────────────────────────────────────────────────── */
+.search-dialog__form {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.search-dialog__input {
+  flex: 1;
+  height: 3.25rem;
+  padding-inline: var(--space-5);
+
+  background-color: var(--color-surface-muted);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-full);
+
+  font-size: var(--text-md);
+  color: var(--color-text);
+
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    box-shadow   var(--duration-fast) var(--ease-out),
+    background   var(--duration-fast) var(--ease-out);
+}
+
+.search-dialog__input:focus {
+  /* :focus (not :focus-visible) for inputs — users expect ring on click */
+  outline: none;
+  border-color: var(--color-primary);
+  background-color: var(--color-surface-raised);
+  box-shadow: 0 0 0 3px oklch(from var(--color-primary) l c h / 0.2);
+  /*
+    oklch relative color syntax:
+    "Take --color-primary, keep l/c/h, change alpha to 0.2"
+    This is cutting-edge CSS. Fallback: use a hardcoded value.
+  */
+}
+
+.search-dialog__input::placeholder {
+  color: var(--color-text-subtle);
+}
+
+.search-dialog__submit {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-6);
+  height: 3.25rem;
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
+  font-family: var(--font-display);
+  font-weight: var(--weight-bold);
+  font-size: var(--text-sm);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    transform        var(--duration-fast) var(--ease-spring);
+}
+
+.search-dialog__submit:hover {
+  background-color: var(--color-primary-hover);
+  transform: scale(1.03);
+}
+
+.search-dialog__submit:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 var(--focus-width) var(--focus-color);
+}
+
+/* ─── Quick links / hints below the search input ──────────────────── */
+.search-dialog__hints {
+  font-size: var(--text-xs);
+  color: var(--color-text-subtle);
+}
+
+.search-dialog__hint-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.search-dialog__hint {
+  padding: var(--space-1) var(--space-3);
+  background-color: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color            var(--duration-fast) var(--ease-out);
+}
+
+.search-dialog__hint:hover {
+  background-color: var(--color-primary-subtle);
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}

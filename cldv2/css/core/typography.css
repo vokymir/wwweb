@@ -1,0 +1,62 @@
+/*
+  ═══════════════════════════════════════════════════════════════════════
+  core/typography.css  ─  Type scale & global text rhythm
+  ═══════════════════════════════════════════════════════════════════════
+  PORTABLE: YES — change font vars in tokens.css, not here.
+  ═══════════════════════════════════════════════════════════════════════
+
+  Q5 — Responsiveness: fluid font sizes
+  ─────────────────────────────────────────
+  All font sizes use clamp() tokens from tokens.css.
+  clamp(min, preferred, max):
+    - min: size on narrowest viewport (~320px)
+    - preferred: vw-based value that scales with viewport
+    - max: size on widest viewport (~1440px)
+  No media queries needed for font size. Text scales CONTINUOUSLY.
+*/
+
+h1 { font-size: var(--text-5xl); font-weight: var(--weight-extrabold); }
+h2 { font-size: var(--text-4xl); }
+h3 { font-size: var(--text-3xl); }
+h4 { font-size: var(--text-2xl); font-weight: var(--weight-semibold); }
+h5 { font-size: var(--text-xl);  font-weight: var(--weight-semibold); }
+h6 { font-size: var(--text-lg);  font-weight: var(--weight-semibold); }
+
+p {
+  line-height: var(--leading-relaxed);
+  color: var(--color-text-muted);
+}
+
+/* In-body link — must be distinguishable by more than colour (WCAG 1.4.1) */
+p a, li a {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
+  transition: color var(--duration-fast) var(--ease-out);
+}
+p a:hover, li a:hover { color: var(--color-primary-hover); }
+
+/* Code */
+code, kbd, samp {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background-color: var(--color-surface-inset);
+  padding: 0.1em 0.4em;
+  border-radius: var(--radius-sm);
+}
+
+/* Blockquote */
+blockquote {
+  border-left: 4px solid var(--color-primary);
+  padding-left: var(--space-6);
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* Strong & em */
+strong { font-weight: var(--weight-bold); }
+em     { font-style: italic; }
+
+/* Small */
+small { font-size: var(--text-sm); color: var(--color-text-subtle); }
