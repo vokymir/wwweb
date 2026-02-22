@@ -1,0 +1,15 @@
+:root {
+    --bg: oklch(1 0 360);
+}
+
+.site-header {
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+}
+
+.nav-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
