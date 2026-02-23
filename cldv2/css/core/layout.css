@@ -21,7 +21,7 @@
   When to use which:
   ┌─────────────────────────────────────────────────────────────┐
   │ Media query     → Page-level layout changes (header, nav,   │
-  │                   overall grid, font scale)                  │
+  │                   overall grid, font scale)                 │
   │ Container query → Component-level changes (card grid,       │
   │                   article layout, hero section)             │
   └─────────────────────────────────────────────────────────────┘
@@ -36,7 +36,7 @@
   Desktop-first means: base styles target wide screens, media queries
   narrow down to mobile with max-width.
 
-  @media (max-width: 768px) { /* mobile overrides */ }
+  @media (max-width: 768px) { / mobile overrides / }
 
   Pro: You write less CSS for desktop (the default state is already right).
   Con: You ship unused styles to mobile users.
@@ -58,18 +58,20 @@
    for horizontal padding.
 */
 .container {
-  width: 100%;
-  max-width: var(--max-w-content);
-  margin-inline: auto;      /* margin-inline = margin-left + margin-right */
-  padding-inline: var(--gutter);
+    width: 100%;
+    max-width: var(--max-w-content);
+    margin-inline: auto;
+    /* margin-inline = margin-left + margin-right */
+    padding-inline: var(--gutter);
 }
 
 .container--narrow {
-  max-width: var(--max-w-prose);
+    max-width: var(--max-w-prose);
 }
 
 .container--wide {
-  max-width: 90rem;  /* 1440px */
+    max-width: 90rem;
+    /* 1440px */
 }
 
 /* ─── SECTION SPACING ────────────────────────────────────────────────
@@ -77,50 +79,49 @@
    Use clamp for fluid spacing too — sections breathe more on wide screens.
 */
 .section {
-  padding-block: clamp(var(--space-12), 8vw, var(--space-24));
+    padding-block: clamp(var(--space-12), 8vw, var(--space-24));
 }
 
 /* ─── GRID PRIMITIVES ────────────────────────────────────────────────
    auto-fit with minmax creates a responsive grid with ZERO media queries.
    Columns wrap automatically when they'd be smaller than the minimum.
-   
+
    Usage: <div class="grid" style="--min-col: 280px">
 */
 .grid {
-  display: grid;
-  grid-template-columns: repeat(
-    auto-fit,
-    minmax(var(--min-col, 16rem), 1fr)
-  );
-  gap: var(--space-6);
+    display: grid;
+    grid-template-columns: repeat(auto-fit,
+            minmax(var(--min-col, 16rem), 1fr));
+    gap: var(--space-6);
 }
 
 /* ─── FLEX STACK ──────────────────────────────────────────────────────
    Vertical stack with consistent gap. Most common layout pattern.
 */
 .stack {
-  display: flex;
-  flex-direction: column;
-  gap: var(--stack-gap, var(--space-4));
+    display: flex;
+    flex-direction: column;
+    gap: var(--stack-gap, var(--space-4));
 }
 
 /* ─── CLUSTER ─────────────────────────────────────────────────────────
    Horizontal group that wraps naturally. No media query needed.
 */
 .cluster {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--cluster-gap, var(--space-4));
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--cluster-gap, var(--space-4));
 }
 
 /* ─── PROSE ───────────────────────────────────────────────────────────
    For long-form text content. Sets comfortable reading line length.
 */
 .prose {
-  max-width: var(--max-w-prose);
+    max-width: var(--max-w-prose);
 }
 
-.prose > * + * {
-  margin-block-start: var(--space-5);  /* vertical rhythm in prose */
+.prose>*+* {
+    margin-block-start: var(--space-5);
+    /* vertical rhythm in prose */
 }
